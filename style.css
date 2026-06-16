@@ -1,0 +1,278 @@
+/* ── Reset ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Tokens ──────────────────────────────────────────── */
+:root {
+  --color-bg:          #f7f7f5;
+  --color-surface:     #ffffff;
+  --color-surface-2:   #f2f2f0;
+  --color-border:      rgba(0,0,0,0.08);
+  --color-border-md:   rgba(0,0,0,0.14);
+  --color-text-1:      #1a1a18;
+  --color-text-2:      #5f5e5a;
+  --color-text-3:      #9a9990;
+  --color-blue:        #185FA5;
+  --color-blue-light:  #E6F1FB;
+  --color-green:       #0F6E56;
+  --color-green-light: #E1F5EE;
+  --color-red:         #993C1D;
+  --color-red-light:   #FAECE7;
+  --color-amber:       #854F0B;
+  --color-amber-light: #FAEEDA;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 1px rgba(0,0,0,0.04);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg:          #121210;
+    --color-surface:     #1e1e1b;
+    --color-surface-2:   #2a2a27;
+    --color-border:      rgba(255,255,255,0.08);
+    --color-border-md:   rgba(255,255,255,0.14);
+    --color-text-1:      #f0efea;
+    --color-text-2:      #a8a79f;
+    --color-text-3:      #6a6960;
+    --color-blue-light:  #0c2d4e;
+    --color-green-light: #04342c;
+    --color-red-light:   #3d1509;
+    --color-amber-light: #2d1a03;
+  }
+}
+
+/* ── Base ────────────────────────────────────────────── */
+html { font-size: 16px; }
+body {
+  font-family: var(--font);
+  background: var(--color-bg);
+  color: var(--color-text-1);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+.app-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 0;
+}
+.app-header__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo__icon { font-size: 22px; }
+.logo__text { font-size: 18px; font-weight: 600; color: var(--color-text-1); letter-spacing: -0.02em; }
+.app-header__sub { font-size: 13px; color: var(--color-text-3); margin-left: auto; }
+
+/* ── Layout ──────────────────────────────────────────── */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Selector ────────────────────────────────────────── */
+.selector-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.select, .input {
+  height: 38px;
+  border: 1px solid var(--color-border-md);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-1);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 0 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.select:focus, .input:focus { border-color: var(--color-blue); }
+.select { cursor: pointer; }
+.input { width: 200px; }
+.input::placeholder { color: var(--color-text-3); }
+.btn {
+  height: 38px;
+  padding: 0 18px;
+  border: 1px solid var(--color-border-md);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-1);
+  font-family: var(--font);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn--primary {
+  background: var(--color-blue);
+  color: #fff;
+  border-color: var(--color-blue);
+}
+.btn--primary:hover { background: #185FA5cc; }
+.data-note { font-size: 12px; color: var(--color-text-3); margin-left: auto; }
+
+/* ── Price header ─────────────────────────────────────── */
+.price-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ticker-badge {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--color-text-2);
+  font-family: var(--font-mono);
+}
+.price-big { font-size: 32px; font-weight: 600; letter-spacing: -0.03em; }
+.change { font-size: 15px; font-weight: 500; }
+.change--up   { color: #1D9E75; }
+.change--down { color: #D85A30; }
+
+/* ── Metric cards ─────────────────────────────────────── */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+.metric {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  box-shadow: var(--shadow-card);
+}
+.metric__label { font-size: 11px; color: var(--color-text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.metric__val   { font-size: 18px; font-weight: 600; color: var(--color-text-1); }
+.metric__sub   { font-size: 11px; color: var(--color-text-2); margin-top: 3px; }
+
+/* ── Card ─────────────────────────────────────────────── */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card);
+}
+.card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.card__title { font-size: 14px; font-weight: 600; color: var(--color-text-1); }
+
+/* ── Period buttons ───────────────────────────────────── */
+.period-btns { display: flex; gap: 4px; }
+.ctrl-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid var(--color-border-md);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-2);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.12s;
+}
+.ctrl-btn:hover { background: var(--color-surface-2); }
+.ctrl-btn.active {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+  border-color: var(--color-blue);
+  font-weight: 600;
+}
+
+/* ── Indicator chips ──────────────────────────────────── */
+.indicator-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 1px solid var(--color-border-md);
+  border-radius: 20px;
+  color: var(--color-text-2);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.12s;
+}
+.chip--on { border-color: var(--color-blue); color: var(--color-blue); background: var(--color-blue-light); }
+.chip__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Chart wrappers ───────────────────────────────────── */
+.chart-wrap { position: relative; width: 100%; }
+.chart-wrap--tall  { height: 280px; }
+.chart-wrap--short { height: 150px; }
+
+/* ── Oscillator layout ────────────────────────────────── */
+.oscillator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+@media (max-width: 640px) { .oscillator-grid { grid-template-columns: 1fr; } }
+.rsi-zones { display: flex; gap: 12px; margin-bottom: 8px; }
+.zone { font-size: 11px; color: var(--color-text-3); }
+
+/* ── Signal grid ──────────────────────────────────────── */
+.signal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.signal-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: var(--color-surface-2);
+}
+.signal-card__name  { font-size: 11px; color: var(--color-text-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.signal-card__val   { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.signal-card__val--buy  { color: #1D9E75; }
+.signal-card__val--sell { color: #D85A30; }
+.signal-card__val--neutral { color: var(--color-text-2); }
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.badge--buy     { background: var(--color-green-light); color: var(--color-green); }
+.badge--sell    { background: var(--color-red-light); color: var(--color-red); }
+.badge--neutral { background: var(--color-surface-2); color: var(--color-text-2); border: 1px solid var(--color-border-md); }
+.signal-card__desc { font-size: 11px; color: var(--color-text-3); }
+.signal-note { font-size: 11px; color: var(--color-text-3); border-top: 1px solid var(--color-border); padding-top: 10px; line-height: 1.6; }
+
+/* ── Disclaimer ───────────────────────────────────────── */
+.disclaimer {
+  font-size: 12px;
+  color: var(--color-text-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  background: var(--color-surface);
+  line-height: 1.7;
+}
+.disclaimer strong { color: var(--color-text-2); }
