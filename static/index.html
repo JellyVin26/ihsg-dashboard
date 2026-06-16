@@ -19,6 +19,9 @@
     </header>
 
     <main class="container">
+      <!-- Status bar -->
+      <div id="statusBar" class="status-bar" style="display:none;"></div>
+
       <!-- Stock Selector -->
       <section class="selector-row">
         <select id="stockSelect" class="select">
@@ -40,7 +43,7 @@
           style="text-transform:uppercase;"
         />
         <button id="loadBtn" class="btn btn--primary">Analyze</button>
-        <span class="data-note">⚠ Demo data — connect API for live prices</span>
+        <span class="data-note" id="dataNote">⚠ Demo data — connect API for live prices</span>
       </section>
 
       <!-- Price header -->
