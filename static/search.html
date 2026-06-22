@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body data-page="market">
+<body data-page="search">
   <div class="app">
     <!-- ── Header ────────────────────────────────────── -->
     <header class="app-header">
@@ -22,8 +22,8 @@
           <span class="logo__text">IDX Analyzer</span>
         </div>
         <nav class="header-nav">
-          <a href="index.html" class="header-nav__link header-nav__link--active">Market Overview</a>
-          <a href="search.html" class="header-nav__link">Stock Search</a>
+          <a href="index.html" class="header-nav__link">Market Overview</a>
+          <a href="search.html" class="header-nav__link header-nav__link--active">Stock Search</a>
         </nav>
         <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light theme">
           <svg id="themeIconMoon" class="theme-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -36,7 +36,36 @@
       <!-- ── Toast Notification ──────────────────────── -->
       <div id="statusToast" class="toast" role="alert"></div>
 
-      <!-- ── Stock Selector Removed for Market Page ──────────────────── -->
+      <!-- ── Stock Selector ──────────────────────────── -->
+      <section class="selector-card" id="main-analysis">
+        <div class="selector-row">
+          <div class="selector-group">
+            <label class="selector-label" for="stockSelect">Stock</label>
+            <select id="stockSelect" class="select">
+              <option value="" selected disabled>Select a stock...</option>
+              <option value="BBCA">BBCA — Bank Central Asia</option>
+              <option value="BBRI">BBRI — Bank Rakyat Indonesia</option>
+              <option value="TLKM">TLKM — Telkom Indonesia</option>
+              <option value="ASII">ASII — Astra International</option>
+              <option value="GOTO">GOTO — GoTo Group</option>
+              <option value="BMRI">BMRI — Bank Mandiri</option>
+              <option value="UNVR">UNVR — Unilever Indonesia</option>
+            </select>
+          </div>
+          <div class="selector-group">
+            <label class="selector-label" for="customTicker">Custom</label>
+            <input type="text" id="customTicker" class="input" placeholder="e.g. BRIS" maxlength="6" style="text-transform:uppercase;" />
+          </div>
+          <button id="loadBtn" class="btn btn--primary">
+            <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            Analyze
+          </button>
+          <span class="data-badge" id="dataNote">
+            <span class="data-badge__dot"></span>
+            Demo data
+          </span>
+        </div>
+      </section>
 
       <!-- ── Price Header ────────────────────────────── -->
       <section class="price-header animate-in">
@@ -160,6 +189,70 @@
         <p class="signal-note">Signals are derived from technical indicators only and do not constitute financial advice.</p>
       </section>
 
+      <!-- ── AI Analyst Verdict ─────────────────────────── -->
+      <section class="card card--glass animate-in" id="analystCard">
+        <div class="card__header">
+          <span class="card__title">
+            <svg class="card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            AI Analyst Verdict
+          </span>
+          <span class="card__subtitle">Synthesized from all technical indicators</span>
+        </div>
+        <div class="analyst-content" id="analystContent">
+          <!-- Verdict Gauge -->
+          <div class="analyst-top">
+            <div class="verdict-gauge-wrap">
+              <svg class="verdict-gauge" viewBox="0 0 200 110" id="verdictGaugeSvg">
+                <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--color-border-md)" stroke-width="12" stroke-linecap="round"/>
+                <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#gaugeGrad)" stroke-width="12" stroke-linecap="round" id="gaugeArc" stroke-dasharray="251" stroke-dashoffset="251"/>
+                <defs>
+                  <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#ef4444"/>
+                    <stop offset="25%" style="stop-color:#f59e0b"/>
+                    <stop offset="50%" style="stop-color:#eab308"/>
+                    <stop offset="75%" style="stop-color:#22c55e"/>
+                    <stop offset="100%" style="stop-color:#16a34a"/>
+                  </linearGradient>
+                </defs>
+                <text x="100" y="85" text-anchor="middle" class="gauge-label" id="gaugeLabel">—</text>
+                <text x="100" y="105" text-anchor="middle" class="gauge-sublabel" id="gaugeSublabel">Loading...</text>
+              </svg>
+            </div>
+            <div class="verdict-summary" id="verdictSummary">
+              <p class="verdict-summary__text">Select a stock and click Analyze to generate the AI verdict.</p>
+            </div>
+          </div>
+
+          <!-- Entry / Target / Stop Loss -->
+          <div class="strategy-cards" id="strategyCards">
+            <div class="strat-card strat-card--buy">
+              <span class="strat-card__label">🟢 Buy Zone</span>
+              <span class="strat-card__value" id="stratEntry">—</span>
+            </div>
+            <div class="strat-card strat-card--target">
+              <span class="strat-card__label">🎯 Target</span>
+              <span class="strat-card__value" id="stratTarget">—</span>
+            </div>
+            <div class="strat-card strat-card--stop">
+              <span class="strat-card__label">🔴 Stop Loss</span>
+              <span class="strat-card__value" id="stratStop">—</span>
+            </div>
+            <div class="strat-card strat-card--rr">
+              <span class="strat-card__label">⚖️ Risk/Reward</span>
+              <span class="strat-card__value" id="stratRR">—</span>
+            </div>
+          </div>
+
+          <!-- Scorecard -->
+          <div class="scorecard" id="scorecard">
+            <div class="scorecard__item"><span class="scorecard__dim">Trend</span><span class="scorecard__stars" id="scTrend">—</span></div>
+            <div class="scorecard__item"><span class="scorecard__dim">Momentum</span><span class="scorecard__stars" id="scMomentum">—</span></div>
+            <div class="scorecard__item"><span class="scorecard__dim">Volatility</span><span class="scorecard__stars" id="scVolatility">—</span></div>
+            <div class="scorecard__item"><span class="scorecard__dim">Value</span><span class="scorecard__stars" id="scValue">—</span></div>
+            <div class="scorecard__item"><span class="scorecard__dim">ML Signal</span><span class="scorecard__stars" id="scML">—</span></div>
+          </div>
+        </div>
+      </section>
 
       <!-- ── News Sentiment ─────────────────────────────── -->
       <section class="card card--glass animate-in" id="newsSection">
@@ -191,7 +284,33 @@
         </div>
       </section>
 
-      <!-- ── Multi-Stock Comparison Removed for Market Page ────────── -->
+      <!-- ── Multi-Stock Comparison ──────────────────── -->
+      <section class="card card--glass card--comparison animate-in" id="comparison-section">
+        <div class="card__header">
+          <span class="card__title">
+            <svg class="card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Multi-Stock Comparison
+          </span>
+          <span class="card__subtitle">Select 2+ stocks to compare normalized performance</span>
+        </div>
+        <div class="compare-selector">
+          <div class="compare-chips" id="compareChips"></div>
+          <div class="compare-add">
+            <input type="text" id="compareCustom" class="input input--sm" placeholder="Add ticker..." maxlength="6" style="text-transform:uppercase;" />
+            <button id="addCompareBtn" class="btn btn--sm btn--outline">+ Add</button>
+          </div>
+        </div>
+        <div id="compareEmpty" class="compare-empty">
+          <svg class="compare-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <p>Select at least 2 stocks above to compare performance</p>
+        </div>
+        <div id="compareContent" style="display:none;">
+          <div class="chart-wrap chart-wrap--tall">
+            <canvas id="compareChart" role="img" aria-label="Multi-stock comparison chart"></canvas>
+          </div>
+          <div id="compareTable" class="compare-table-wrap"></div>
+        </div>
+      </section>
 
       <!-- ── Disclaimer ──────────────────────────────── -->
       <footer class="disclaimer animate-in">

@@ -1003,12 +1003,23 @@ function renderCompareTable(allData, tickers) {
 // ── Main Load ──────────────────────────────────────────────
 
 async function loadStock(isAuto = false) {
+  const page = document.body.dataset.page || 'search';
+
   if (!isAuto) {
-    const customInput = document.getElementById('customTicker');
-    const selectInput = document.getElementById('stockSelect');
-    const custom = customInput ? customInput.value.trim().toUpperCase() : '';
-    const select = selectInput ? selectInput.value : 'IHSG';
-    state.ticker = custom || select;
+    if (page === 'market') {
+      state.ticker = 'IHSG';
+    } else {
+      const customInput = document.getElementById('customTicker');
+      const selectInput = document.getElementById('stockSelect');
+      const custom = customInput ? customInput.value.trim().toUpperCase() : '';
+      const select = selectInput ? selectInput.value : '';
+      state.ticker = custom || select;
+    }
+
+    if (!state.ticker) {
+      // Empty state: show skeletons, do not fetch
+      return;
+    }
 
     setLoading(true);
     if (state.pollingInterval) clearInterval(state.pollingInterval);
@@ -1041,7 +1052,9 @@ async function loadStock(isAuto = false) {
   buildCharts(prices, labels);
 
   // Load AI Analyst Verdict (async, doesn't block UI)
-  if (!isAuto) loadAnalysis();
+  if (!isAuto && document.getElementById('analystCard')) {
+    loadAnalysis();
+  }
 
   if (!isAuto) setLoading(false);
 
@@ -1261,13 +1274,16 @@ function renderNewsFeed(data) {
 // ── Smooth scroll for nav links ────────────────────────────
 document.querySelectorAll('.header-nav__link').forEach(link => {
   link.addEventListener('click', (e) => {
-    e.preventDefault();
-    const target = document.querySelector(link.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const href = link.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      document.querySelectorAll('.header-nav__link').forEach(l => l.classList.remove('header-nav__link--active'));
+      link.classList.add('header-nav__link--active');
     }
-    document.querySelectorAll('.header-nav__link').forEach(l => l.classList.remove('header-nav__link--active'));
-    link.classList.add('header-nav__link--active');
   });
 });
 
