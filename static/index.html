@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IDX Analyzer Pro — Indonesian Stock Technical Analysis</title>
+  <title>IDX Analyzer — Indonesian Stock Technical Analysis</title>
   <meta name="description" content="Advanced technical analysis dashboard for Indonesian Stock Exchange (IDX/IHSG) with multi-stock comparison, support & resistance levels, and real-time indicators." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,7 +20,6 @@
             <svg class="logo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
           </div>
           <span class="logo__text">IDX Analyzer</span>
-          <span class="logo__badge">PRO</span>
         </div>
         <nav class="header-nav">
           <a href="#main-analysis" class="header-nav__link header-nav__link--active">Analysis</a>
@@ -72,6 +71,7 @@
       <section class="price-header animate-in">
         <div class="price-header__left">
           <span class="ticker-badge" id="tickerLabel">^JKSE</span>
+          <span class="risk-badge" id="riskBadge" style="display:none;">Risk: Unknown</span>
           <div class="price-header__price">
             <span class="price-big" id="priceDisplay">—</span>
             <span class="change" id="changeDisplay">—</span>
@@ -96,6 +96,28 @@
         <div class="metric metric--skeleton"><div class="skeleton-line"></div><div class="skeleton-line skeleton-line--short"></div></div>
       </section>
 
+      <!-- ── ML Prediction Card ──────────────────────── -->
+      <section class="card card--glass animate-in" id="mlCard" style="margin-bottom: 1.25rem;">
+        <div class="card__header">
+          <span class="card__title">
+            <svg class="card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            AI Trend Prediction (Next Day)
+          </span>
+          <span class="card__subtitle">Random Forest ML Model</span>
+        </div>
+        <div class="ml-content">
+          <div class="ml-prediction">
+            <span class="ml-direction" id="mlDirection">—</span>
+            <div class="ml-confidence-wrap">
+              <div class="ml-confidence-bar">
+                <div class="ml-confidence-fill" id="mlConfidenceFill" style="width: 0%;"></div>
+              </div>
+              <span class="ml-confidence-text" id="mlConfidenceText">0% Confidence</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ── Price Chart ─────────────────────────────── -->
       <section class="card card--glass animate-in">
         <div class="card__header">
@@ -104,9 +126,9 @@
             Price Chart
           </span>
           <div class="indicator-chips">
-            <div class="chip chip--on" data-ind="ma20"><span class="chip__dot" style="background:#60a5fa;"></span>MA 20</div>
-            <div class="chip chip--on" data-ind="ma50"><span class="chip__dot" style="background:#f59e0b;"></span>MA 50</div>
-            <div class="chip chip--on" data-ind="bb"><span class="chip__dot" style="background:#888;"></span>Bollinger</div>
+            <div class="chip" data-ind="ma20"><span class="chip__dot" style="background:#60a5fa;"></span>MA 20</div>
+            <div class="chip" data-ind="ma50"><span class="chip__dot" style="background:#f59e0b;"></span>MA 50</div>
+            <div class="chip" data-ind="bb"><span class="chip__dot" style="background:#888;"></span>Bollinger</div>
             <div class="chip" data-ind="sr"><span class="chip__dot" style="background:#ef4444;"></span>S / R Levels</div>
           </div>
         </div>

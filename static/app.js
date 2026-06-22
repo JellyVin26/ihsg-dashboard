@@ -20,19 +20,21 @@ const AVAILABLE_TICKERS = Object.keys(TICKER_META);
 const PERIOD_DAYS = { '1M': 30, '3M': 90, '6M': 180, '1Y': 365 };
 
 const COMPARE_COLORS = [
-  '#818cf8', '#34d399', '#fbbf24', '#f87171',
-  '#a78bfa', '#fb923c', '#22d3ee', '#f472b6',
+  '#3b82f6', '#34d399', '#fbbf24', '#f87171',
+  '#8b5cf6', '#fb923c', '#22d3ee', '#f472b6',
 ];
 
 // ── State ──────────────────────────────────────────────────
 const state = {
   ticker: 'IHSG',
   period: '3M',
-  indicators: { ma20: true, ma50: true, bb: true, sr: false },
+  indicators: { ma20: false, ma50: false, bb: false, sr: false },
   charts: { price: null, rsi: null, macd: null, compare: null },
   usingLiveData: false,
   compareTickers: [],
   compareDataCache: {},
+  liveClockInterval: null,
+  pollingInterval: null,
   theme: localStorage.getItem('idx-theme') || 'dark',
   lastPrices: [],
   lastLabels: [],
@@ -139,6 +141,10 @@ function generateDemoData(ticker, period) {
     latest: last,
     change: last - prev,
     change_pct: ((last - prev) / prev) * 100,
+    risk_level: 'Medium',
+    ann_vol: 18.5,
+    ml_prediction: rand() > 0.5 ? 'UP' : 'DOWN',
+    ml_confidence: 50 + rand() * 40,
     isDemo: true,
   };
 }
@@ -281,9 +287,18 @@ function renderPriceHeader(data) {
   const priceEl = document.getElementById('priceDisplay');
   const changeEl = document.getElementById('changeDisplay');
   const noteEl = document.getElementById('dataNote');
+  const riskBadge = document.getElementById('riskBadge');
 
   if (tickerEl) tickerEl.textContent = data.yahoo_symbol ?? data.ticker ?? '—';
   if (priceEl) priceEl.textContent = latest.toLocaleString('id-ID', { maximumFractionDigits: 0 });
+
+  if (riskBadge && data.risk_level) {
+    riskBadge.style.display = 'inline-block';
+    riskBadge.textContent = `Risk: ${data.risk_level}`;
+    riskBadge.className = `risk-badge risk-badge--${data.risk_level}`;
+  } else if (riskBadge) {
+    riskBadge.style.display = 'none';
+  }
 
   if (changeEl) {
     changeEl.textContent = `${isUp ? '+' : ''}${change.toFixed(0)} (${isUp ? '+' : ''}${changePct.toFixed(2)}%)`;
@@ -291,14 +306,56 @@ function renderPriceHeader(data) {
   }
 
   if (noteEl) {
+    // Clear any previous ticking clock
+    if (state.liveClockInterval) clearInterval(state.liveClockInterval);
+
     if (data.isDemo) {
       noteEl.innerHTML = '<span class="data-badge__dot"></span>Demo data';
       noteEl.className = 'data-badge';
     } else {
-      noteEl.innerHTML = '<span class="data-badge__dot"></span>Live · ' + new Date().toLocaleTimeString();
+      const updateClock = () => {
+        if (noteEl) noteEl.innerHTML = '<span class="data-badge__dot"></span>Live · ' + new Date().toLocaleTimeString();
+      };
+      updateClock(); // set immediately
       noteEl.className = 'data-badge data-badge--live';
+      state.liveClockInterval = setInterval(updateClock, 1000);
     }
   }
+}
+
+// ── Render: ML Prediction ──────────────────────────────────
+function renderMLPrediction(data) {
+  const dirEl = document.getElementById('mlDirection');
+  const fillEl = document.getElementById('mlConfidenceFill');
+  const textEl = document.getElementById('mlConfidenceText');
+
+  if (!dirEl || !fillEl || !textEl) return;
+
+  const pred = data.ml_prediction || 'Unknown';
+  const conf = data.ml_confidence || 0;
+
+  if (pred === 'Unknown' || conf === 0) {
+    dirEl.textContent = '—';
+    dirEl.className = 'ml-direction';
+    fillEl.style.width = '0%';
+    textEl.textContent = 'Not enough data';
+    return;
+  }
+
+  const isUp = pred === 'UP';
+  const upIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>`;
+  const downIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="7" x2="17" y2="17"></line><polyline points="17 7 17 17 7 17"></polyline></svg>`;
+  
+  dirEl.innerHTML = isUp ? `${upIcon} UP` : `${downIcon} DOWN`;
+  dirEl.className = `ml-direction ${isUp ? 'up' : 'down'}`;
+  
+  fillEl.className = `ml-confidence-fill ${isUp ? 'up' : 'down'}`;
+  // Small animation delay for the bar
+  setTimeout(() => {
+    fillEl.style.width = `${conf}%`;
+  }, 100);
+  
+  textEl.textContent = `${conf.toFixed(1)}% Confidence`;
 }
 
 // ── Render: Metrics ────────────────────────────────────────
@@ -486,8 +543,8 @@ function getChartColors() {
   return {
     grid: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)',
     tick: isDark ? '#55544e' : '#9b9ba2',
-    price: isDark ? '#818cf8' : '#6366f1',
-    priceFill: isDark ? 'rgba(129,140,248,0.08)' : 'rgba(99,102,241,0.06)',
+    price: isDark ? '#3b82f6' : '#2563eb',
+    priceFill: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(37,99,235,0.06)',
     ma20: '#60a5fa',
     ma50: '#f59e0b',
     bbBorder: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
@@ -945,14 +1002,18 @@ function renderCompareTable(allData, tickers) {
 
 // ── Main Load ──────────────────────────────────────────────
 
-async function loadStock() {
-  const customInput = document.getElementById('customTicker');
-  const selectInput = document.getElementById('stockSelect');
-  const custom = customInput ? customInput.value.trim().toUpperCase() : '';
-  const select = selectInput ? selectInput.value : 'IHSG';
-  state.ticker = custom || select;
+async function loadStock(isAuto = false) {
+  if (!isAuto) {
+    const customInput = document.getElementById('customTicker');
+    const selectInput = document.getElementById('stockSelect');
+    const custom = customInput ? customInput.value.trim().toUpperCase() : '';
+    const select = selectInput ? selectInput.value : 'IHSG';
+    state.ticker = custom || select;
 
-  setLoading(true);
+    setLoading(true);
+    if (state.pollingInterval) clearInterval(state.pollingInterval);
+    state.pollingInterval = null;
+  }
 
   let data;
   try {
@@ -973,12 +1034,18 @@ async function loadStock() {
   state.lastLabels = labels;
 
   renderPriceHeader(data);
+  renderMLPrediction(data);
   renderMetrics(prices);
   renderSignals(prices);
   renderSRCard(prices);
   buildCharts(prices, labels);
 
-  setLoading(false);
+  if (!isAuto) setLoading(false);
+
+  // Auto-poll every 15 seconds if we are on live data
+  if (state.usingLiveData && !state.pollingInterval) {
+    state.pollingInterval = setInterval(() => loadStock(true), 15000);
+  }
 }
 
 // ── Event Listeners ────────────────────────────────────────

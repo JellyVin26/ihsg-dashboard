@@ -13,6 +13,10 @@ from fastapi.staticfiles import StaticFiles
 import yfinance as yf
 from datetime import datetime
 import math
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
 
 app = FastAPI(title="IDX Analyzer API", version="1.0.0")
 
@@ -93,10 +97,11 @@ def get_prices(ticker: str, period: str = "3M"):
     symbol = yahoo_symbol(ticker)
 
     try:
+        # Always fetch 5 years of data to have enough history for ML training and Risk
         hist = yf.download(
             symbol,
-            period=yf_period,
-            interval=yf_interval,
+            period="5y",
+            interval="1d",
             progress=False,
             auto_adjust=True,
         )
@@ -108,11 +113,84 @@ def get_prices(ticker: str, period: str = "3M"):
                                   "Check that it's a valid IDX ticker.")
 
     # Handle multi-level columns from newer yfinance versions
-    if isinstance(hist.columns, __import__('pandas').MultiIndex):
+    if isinstance(hist.columns, pd.MultiIndex):
         hist.columns = hist.columns.droplevel(1)
 
-    close  = hist["Close"].dropna()
-    volume = hist["Volume"].fillna(0)
+    df = hist.copy()
+    
+    # --- 1. Compute Risk Level (Annualized Volatility & Drawdown over last 1 year) ---
+    # ~252 trading days in a year
+    df_1y = df.tail(252).copy()
+    if len(df_1y) > 10:
+        returns_1y = df_1y["Close"].pct_change().dropna()
+        daily_vol = returns_1y.std()
+        ann_vol = daily_vol * np.sqrt(252) * 100
+        
+        if ann_vol < 15:
+            risk_level = "Low"
+        elif ann_vol < 25:
+            risk_level = "Medium"
+        elif ann_vol < 40:
+            risk_level = "High"
+        else:
+            risk_level = "Extreme"
+    else:
+        risk_level = "Unknown"
+        ann_vol = 0
+
+    # --- 2. Train ML Trend Predictor (Next Day) ---
+    ml_prediction = "Unknown"
+    ml_confidence = 0
+    try:
+        if len(df) > 100:
+            # Feature Engineering
+            df_ml = df.copy()
+            df_ml['Ret_1d'] = df_ml['Close'].pct_change(1)
+            df_ml['Ret_3d'] = df_ml['Close'].pct_change(3)
+            df_ml['Ret_5d'] = df_ml['Close'].pct_change(5)
+            df_ml['MA20'] = df_ml['Close'].rolling(20).mean()
+            df_ml['MA50'] = df_ml['Close'].rolling(50).mean()
+            df_ml['Dist_MA20'] = df_ml['Close'] / df_ml['MA20'] - 1
+            df_ml['Dist_MA50'] = df_ml['Close'] / df_ml['MA50'] - 1
+            
+            # Target: 1 if next day's close > today's close, else 0
+            df_ml['Target'] = (df_ml['Close'].shift(-1) > df_ml['Close']).astype(int)
+            
+            # Drop NaNs
+            df_ml = df_ml.dropna()
+            
+            if len(df_ml) > 50:
+                features = ['Ret_1d', 'Ret_3d', 'Ret_5d', 'Dist_MA20', 'Dist_MA50']
+                X = df_ml[features]
+                y = df_ml['Target']
+                
+                # We want to predict the *very next* day, so we train on everything except the last row
+                X_train = X.iloc[:-1]
+                y_train = y.iloc[:-1]
+                X_latest = X.iloc[-1:] # Features of the latest trading day
+                
+                # Train a quick Random Forest
+                rf = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
+                rf.fit(X_train, y_train)
+                
+                # Predict next day
+                pred = rf.predict(X_latest)[0]
+                proba = rf.predict_proba(X_latest)[0]
+                
+                ml_prediction = "UP" if pred == 1 else "DOWN"
+                ml_confidence = round(max(proba) * 100, 1)
+    except Exception as e:
+        print("ML Error:", e)
+
+    # --- 3. Slice the data to the user's requested period for the chart ---
+    # 1M=30, 3M=90, 6M=180, 1Y=365 calendar days roughly (trading days are fewer)
+    period_mapping_days = {"1M": 22, "3M": 65, "6M": 130, "1Y": 252}
+    trading_days = period_mapping_days.get(period, 65)
+    
+    sliced_df = df.tail(trading_days)
+    
+    close  = sliced_df["Close"].dropna()
+    volume = sliced_df["Volume"].fillna(0)
 
     prices = [safe_float(v) for v in close.values]
     dates  = [d.strftime("%d %b") for d in close.index]
@@ -133,6 +211,10 @@ def get_prices(ticker: str, period: str = "3M"):
         "latest":       latest,
         "change":       change,
         "change_pct":   change_pct,
+        "risk_level":   risk_level,
+        "ann_vol":      round(ann_vol, 2) if ann_vol else None,
+        "ml_prediction": ml_prediction,
+        "ml_confidence": ml_confidence,
         "fetched_at":   datetime.utcnow().isoformat() + "Z",
     }
 
