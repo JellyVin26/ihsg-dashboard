@@ -7,32 +7,59 @@
   <meta name="description" content="Advanced technical analysis dashboard for Indonesian Stock Exchange (IDX/IHSG) with multi-stock comparison, support & resistance levels, and real-time indicators." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body data-page="search">
   <div class="app">
-    <!-- ── Header ────────────────────────────────────── -->
-    <header class="app-header">
-      <div class="app-header__inner">
-        <div class="logo">
-          <div class="logo__icon-wrap">
-            <svg class="logo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-          </div>
-          <span class="logo__text">IDX Analyzer</span>
+    <!-- ── Sidebar ──────────────────────────────────────── -->
+    <aside class="sidebar">
+      <a href="index.html" class="sidebar__logo">
+        <div class="logo__icon-wrap">
+          <svg class="logo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
         </div>
-        <nav class="header-nav">
-          <a href="index.html" class="header-nav__link">Market Overview</a>
-          <a href="search.html" class="header-nav__link header-nav__link--active">Stock Search</a>
-        </nav>
-        <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light theme">
-          <svg id="themeIconMoon" class="theme-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          <svg id="themeIconSun" class="theme-toggle__icon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        </button>
-      </div>
-    </header>
+        <span class="logo__text">IDX Analyzer</span>
+      </a>
+      <nav class="sidebar__nav">
+        <a href="#main-analysis" class="sidebar__link header-nav__link sidebar__link--active">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          Overview
+        </a>
+        <a href="#mlCard" class="sidebar__link header-nav__link">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          Trend Prediction
+        </a>
+        <a href="#signalGrid" class="sidebar__link header-nav__link">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Technical Signals
+        </a>
+        <a href="#analystCard" class="sidebar__link header-nav__link">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          AI Analyst
+        </a>
+        <a href="#newsSection" class="sidebar__link header-nav__link">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+          News Feed
+        </a>
+      </nav>
+    </aside>
 
-    <main class="container">
+    <div class="main-wrapper">
+      <!-- ── Header ────────────────────────────────────── -->
+      <header class="app-header">
+        <div class="app-header__inner" style="justify-content: space-between;">
+          <nav class="header-nav" style="margin-left: 0;">
+            <a href="index.html" class="header-nav__link">Market Overview</a>
+            <a href="search.html" class="header-nav__link header-nav__link--active">Stock Search</a>
+          </nav>
+          <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light theme">
+            <svg id="themeIconMoon" class="theme-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg id="themeIconSun" class="theme-toggle__icon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="container">
       <!-- ── Toast Notification ──────────────────────── -->
       <div id="statusToast" class="toast" role="alert"></div>
 
@@ -209,9 +236,9 @@
                   <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" style="stop-color:#ef4444"/>
                     <stop offset="25%" style="stop-color:#f59e0b"/>
-                    <stop offset="50%" style="stop-color:#eab308"/>
-                    <stop offset="75%" style="stop-color:#22c55e"/>
-                    <stop offset="100%" style="stop-color:#16a34a"/>
+                    <stop offset="50%" style="stop-color:#fbbf24"/>
+                    <stop offset="75%" style="stop-color:#e2f554"/>
+                    <stop offset="100%" style="stop-color:#CFF008"/>
                   </linearGradient>
                 </defs>
                 <text x="100" y="85" text-anchor="middle" class="gauge-label" id="gaugeLabel">—</text>
@@ -243,13 +270,28 @@
             </div>
           </div>
 
-          <!-- Scorecard -->
-          <div class="scorecard" id="scorecard">
-            <div class="scorecard__item"><span class="scorecard__dim">Trend</span><span class="scorecard__stars" id="scTrend">—</span></div>
-            <div class="scorecard__item"><span class="scorecard__dim">Momentum</span><span class="scorecard__stars" id="scMomentum">—</span></div>
-            <div class="scorecard__item"><span class="scorecard__dim">Volatility</span><span class="scorecard__stars" id="scVolatility">—</span></div>
-            <div class="scorecard__item"><span class="scorecard__dim">Value</span><span class="scorecard__stars" id="scValue">—</span></div>
-            <div class="scorecard__item"><span class="scorecard__dim">ML Signal</span><span class="scorecard__stars" id="scML">—</span></div>
+          <!-- Factor Scorecard -->
+          <div class="scorecard-grid">
+            <div class="scorecard-item">
+              <div class="scorecard-item__label">Trend</div>
+              <div class="scorecard-item__bar-wrap"><div class="scorecard-item__bar-fill" id="scTrend"></div></div>
+            </div>
+            <div class="scorecard-item">
+              <div class="scorecard-item__label">Momentum</div>
+              <div class="scorecard-item__bar-wrap"><div class="scorecard-item__bar-fill" id="scMomentum"></div></div>
+            </div>
+            <div class="scorecard-item">
+              <div class="scorecard-item__label">Volatility</div>
+              <div class="scorecard-item__bar-wrap"><div class="scorecard-item__bar-fill" id="scVolatility"></div></div>
+            </div>
+            <div class="scorecard-item">
+              <div class="scorecard-item__label">Value</div>
+              <div class="scorecard-item__bar-wrap"><div class="scorecard-item__bar-fill" id="scValue"></div></div>
+            </div>
+            <div class="scorecard-item">
+              <div class="scorecard-item__label">AI Signal</div>
+              <div class="scorecard-item__bar-wrap"><div class="scorecard-item__bar-fill" id="scML"></div></div>
+            </div>
           </div>
         </div>
       </section>

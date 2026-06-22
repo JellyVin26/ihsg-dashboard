@@ -548,8 +548,28 @@ def _fetch_rss(url: str, source_name: str, max_items: int = 10) -> list:
             if not title:
                 continue
 
-            # Clean title (remove CDATA, HTML)
-            title = re.sub(r"<[^>]+>", "", title).strip()
+            desc = item.findtext("description", "")
+            img_url = ""
+
+            # Try enclosure
+            enclosure = item.find("enclosure")
+            if enclosure is not None and enclosure.get("type", "").startswith("image"):
+                img_url = enclosure.get("url", "")
+
+            # Try media:content/thumbnail
+            if not img_url:
+                for child in item:
+                    if "content" in child.tag or "thumbnail" in child.tag:
+                        url = child.get("url", "")
+                        if url and (".jpg" in url.lower() or ".png" in url.lower() or "image" in child.get("type", "").lower()):
+                            img_url = url
+                            break
+
+            # Try regex on description
+            if not img_url and desc:
+                img_match = re.search(r'<img[^>]+src="([^">]+)"', desc, re.IGNORECASE)
+                if img_match:
+                    img_url = img_match.group(1)
 
             sentiment, impact = _score_headline(title)
             items.append({
@@ -557,6 +577,7 @@ def _fetch_rss(url: str, source_name: str, max_items: int = 10) -> list:
                 "link": link,
                 "source": source_name,
                 "pubDate": pub_date,
+                "image": img_url,
                 "sentiment": sentiment,
                 "impact": impact,
             })

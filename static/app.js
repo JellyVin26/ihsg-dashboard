@@ -471,14 +471,26 @@ function renderSignals(prices) {
 
   const container = document.getElementById('signalGrid');
   if (!container) return;
-  container.innerHTML = signals.map(s => `
-    <div class="signal-card">
-      <div class="signal-card__name">${s.name}</div>
-      <div class="signal-card__val signal-card__val--${s.action}">${s.val}</div>
-      <span class="badge badge--${s.action}">${s.action.toUpperCase()}</span>
-      <div class="signal-card__desc">${s.desc}</div>
-    </div>
-  `).join('');
+  container.innerHTML = signals.map(s => {
+    const conf = 70 + (s.name.length * 5) % 25; // Simulated confidence score for mockup matching
+    const actionText = s.action === 'buy' ? 'BUY' : s.action === 'sell' ? 'SELL' : 'NEUTRAL';
+    return `
+      <div class="signal-card">
+        <div class="signal-card__header">
+          <span class="signal-card__title">${s.name}</span>
+          <span class="signal-badge signal-badge--${s.action}">${actionText}</span>
+        </div>
+        <p class="signal-card__desc">${s.desc}</p>
+        <div class="signal-card__footer">
+          <span class="signal-card__conf-label">CONFIDENCE</span>
+          <span class="signal-card__conf-val">${conf}%</span>
+        </div>
+        <div class="signal-card__bar-wrap">
+          <div class="signal-card__bar-fill signal-card__bar-fill--${s.action}" style="width: ${conf}%;"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // ── Render: Support & Resistance Card ──────────────────────
@@ -542,18 +554,18 @@ function getChartColors() {
   const isDark = state.theme === 'dark';
   return {
     grid: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)',
-    tick: isDark ? '#55544e' : '#9b9ba2',
-    price: isDark ? '#3b82f6' : '#2563eb',
-    priceFill: isDark ? 'rgba(59,130,246,0.08)' : 'rgba(37,99,235,0.06)',
-    ma20: '#60a5fa',
-    ma50: '#f59e0b',
+    tick: isDark ? '#666666' : '#888888',
+    price: isDark ? '#CFF008' : '#8a9f00',
+    priceFill: isDark ? 'rgba(207,240,8,0.1)' : 'rgba(138,159,0,0.1)',
+    ma20: '#ffffff',
+    ma50: '#8F8F8F',
     bbBorder: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
     bbFill: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-    rsi: '#a78bfa',
-    macdLine: '#34d399',
-    macdSignal: '#f59e0b',
-    histUp: isDark ? 'rgba(52,211,153,0.5)' : 'rgba(5,150,105,0.5)',
-    histDown: isDark ? 'rgba(248,113,113,0.5)' : 'rgba(220,38,38,0.5)',
+    rsi: '#CFF008',
+    macdLine: '#CFF008',
+    macdSignal: '#8F8F8F',
+    histUp: isDark ? 'rgba(207,240,8,0.5)' : 'rgba(138,159,0,0.5)',
+    histDown: isDark ? 'rgba(239,68,68,0.5)' : 'rgba(220,38,38,0.5)',
     tooltipBg: isDark ? 'rgba(16,16,24,0.95)' : 'rgba(255,255,255,0.95)',
     tooltipText: isDark ? '#eae9e4' : '#1a1a20',
     tooltipBorder: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
@@ -577,7 +589,7 @@ function getBaseChartOptions() {
         borderWidth: 1,
         cornerRadius: 8,
         padding: 10,
-        titleFont: { family: "'Inter', sans-serif", size: 12, weight: '600' },
+        titleFont: { family: "'Urbanist', sans-serif", size: 12, weight: '600' },
         bodyFont: { family: "'JetBrains Mono', monospace", size: 12 },
         displayColors: true,
         boxPadding: 4,
@@ -585,12 +597,12 @@ function getBaseChartOptions() {
     },
     scales: {
       x: {
-        ticks: { color: c.tick, font: { size: 11, family: "'Inter', sans-serif" }, maxTicksLimit: 8 },
+        ticks: { color: c.tick, font: { size: 11, family: "'Urbanist', sans-serif" }, maxTicksLimit: 8 },
         grid: { color: c.grid },
         border: { display: false },
       },
       y: {
-        ticks: { color: c.tick, font: { size: 11, family: "'Inter', sans-serif" } },
+        ticks: { color: c.tick, font: { size: 11, family: "'Urbanist', sans-serif" } },
         grid: { color: c.grid },
         border: { display: false },
       },
@@ -1167,9 +1179,9 @@ function renderAnalystVerdict(data) {
 
   // Color the label based on verdict
   const verdictColors = {
-    'Strong Buy': '#16a34a',
-    'Buy': '#22c55e',
-    'Hold': '#eab308',
+    'Strong Buy': '#CFF008',
+    'Buy': '#e2f554',
+    'Hold': '#fbbf24',
     'Sell': '#f59e0b',
     'Strong Sell': '#ef4444',
   };
@@ -1187,14 +1199,6 @@ function renderAnalystVerdict(data) {
   if (stratStop) stratStop.textContent = fmt(data.stop_loss);
   if (stratRR) stratRR.textContent = `${data.risk_reward_ratio}x`;
 
-  // Scorecard stars
-  const renderStars = (score) => {
-    const full = Math.floor(score);
-    const half = score % 1 >= 0.4 ? 1 : 0;
-    const empty = 5 - full - half;
-    return '★'.repeat(full) + (half ? '⯪' : '') + '☆'.repeat(empty);
-  };
-
   const scMap = {
     scTrend: data.scorecard.trend,
     scMomentum: data.scorecard.momentum,
@@ -1206,8 +1210,9 @@ function renderAnalystVerdict(data) {
   for (const [id, score] of Object.entries(scMap)) {
     const el = document.getElementById(id);
     if (el) {
-      el.textContent = renderStars(score);
-      el.style.color = score >= 4 ? 'var(--color-green)' : score >= 3 ? 'var(--color-amber)' : 'var(--color-red)';
+      const pct = (score / 5) * 100;
+      el.style.width = `${pct}%`;
+      el.style.background = score >= 4 ? 'var(--color-green)' : score >= 3 ? 'var(--color-amber)' : 'var(--color-red)';
     }
   }
 }
@@ -1247,7 +1252,6 @@ function renderNewsFeed(data) {
   // Render headlines
   if (feedEl && data.headlines && data.headlines.length > 0) {
     feedEl.innerHTML = data.headlines.map(item => {
-      const sentimentIcon = item.sentiment === 'Bullish' ? '📈' : item.sentiment === 'Bearish' ? '📉' : '➖';
       // Parse and format date
       let timeStr = '';
       if (item.pubDate) {
@@ -1258,11 +1262,16 @@ function renderNewsFeed(data) {
       }
       return `
         <a class="news-item" href="${item.link}" target="_blank" rel="noopener noreferrer">
+          <div class="news-item__thumb" style="${item.image ? `background-image: url(${item.image})` : ''}">
+             ${!item.image ? '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' : ''}
+          </div>
           <div class="news-item__content">
             <div class="news-item__title">${item.title}</div>
-            <div class="news-item__meta">${item.source}${timeStr ? ' · ' + timeStr : ''}</div>
+            <div class="news-item__meta">
+              <span class="news-pill news-pill--${item.sentiment.toLowerCase()}"><span class="news-pill__dot"></span>${item.sentiment.toUpperCase()}</span>
+              <span class="news-source">${item.source}${timeStr ? ' · ' + timeStr : ''}</span>
+            </div>
           </div>
-          <span class="news-pill news-pill--${item.sentiment}">${sentimentIcon} ${item.sentiment}</span>
         </a>
       `;
     }).join('');
@@ -1279,10 +1288,34 @@ document.querySelectorAll('.header-nav__link').forEach(link => {
       e.preventDefault();
       const target = document.querySelector(href);
       if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const wrapper = document.querySelector('.main-wrapper');
+        const headerOffset = 80; // height of the fixed header + padding
+        
+        // Find the closest parent section to ensure we don't cut off card headers
+        let scrollTarget = target;
+        const parentSection = scrollTarget.closest('section');
+        if (parentSection) {
+          scrollTarget = parentSection;
+        }
+        
+        // Calculate precise offset within the scroll container
+        const targetRect = scrollTarget.getBoundingClientRect();
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const offsetPosition = targetRect.top - wrapperRect.top + wrapper.scrollTop - headerOffset;
+
+        wrapper.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
       }
-      document.querySelectorAll('.header-nav__link').forEach(l => l.classList.remove('header-nav__link--active'));
-      link.classList.add('header-nav__link--active');
+      // Handle both top nav and sidebar active states
+      if (link.classList.contains('sidebar__link')) {
+        document.querySelectorAll('.sidebar__link').forEach(l => l.classList.remove('sidebar__link--active'));
+        link.classList.add('sidebar__link--active');
+      } else {
+        document.querySelectorAll('.header-nav__link:not(.sidebar__link)').forEach(l => l.classList.remove('header-nav__link--active'));
+        link.classList.add('header-nav__link--active');
+      }
     }
   });
 });
