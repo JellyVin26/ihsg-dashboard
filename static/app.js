@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════════
 
 // ── Config ─────────────────────────────────────────────────
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 'https://ihsg-dashboard.onrender.com/api';
 
 const TICKER_META = {
   IHSG: { label: '^JKSE',   base: 7142,  vol: 80  },
