@@ -107,6 +107,10 @@ def get_prices(ticker: str, period: str = "3M"):
         raise HTTPException(404, f"No data found for '{ticker}' (tried '{symbol}'). "
                                   "Check that it's a valid IDX ticker.")
 
+    # Handle multi-level columns from newer yfinance versions
+    if isinstance(hist.columns, __import__('pandas').MultiIndex):
+        hist.columns = hist.columns.droplevel(1)
+
     close  = hist["Close"].dropna()
     volume = hist["Volume"].fillna(0)
 

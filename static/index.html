@@ -1,117 +1,203 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IHSG Technical Analysis Dashboard</title>
+  <title>IDX Analyzer Pro — Indonesian Stock Technical Analysis</title>
+  <meta name="description" content="Advanced technical analysis dashboard for Indonesian Stock Exchange (IDX/IHSG) with multi-stock comparison, support & resistance levels, and real-time indicators." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
+    <!-- ── Header ────────────────────────────────────── -->
     <header class="app-header">
       <div class="app-header__inner">
         <div class="logo">
-          <span class="logo__icon">📈</span>
+          <div class="logo__icon-wrap">
+            <svg class="logo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          </div>
           <span class="logo__text">IDX Analyzer</span>
+          <span class="logo__badge">PRO</span>
         </div>
-        <p class="app-header__sub">Indonesian Stock Technical Analysis</p>
+        <nav class="header-nav">
+          <a href="#main-analysis" class="header-nav__link header-nav__link--active">Analysis</a>
+          <a href="#comparison-section" class="header-nav__link">Compare</a>
+        </nav>
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light theme">
+          <svg id="themeIconMoon" class="theme-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="themeIconSun" class="theme-toggle__icon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
       </div>
     </header>
 
     <main class="container">
-      <!-- Status bar -->
-      <div id="statusBar" class="status-bar" style="display:none;"></div>
+      <!-- ── Toast Notification ──────────────────────── -->
+      <div id="statusToast" class="toast" role="alert"></div>
 
-      <!-- Stock Selector -->
-      <section class="selector-row">
-        <select id="stockSelect" class="select">
-          <option value="IHSG">IHSG (Composite)</option>
-          <option value="BBCA">BBCA — Bank Central Asia</option>
-          <option value="BBRI">BBRI — Bank Rakyat Indonesia</option>
-          <option value="TLKM">TLKM — Telkom Indonesia</option>
-          <option value="ASII">ASII — Astra International</option>
-          <option value="GOTO">GOTO — GoTo Group</option>
-          <option value="BMRI">BMRI — Bank Mandiri</option>
-          <option value="UNVR">UNVR — Unilever Indonesia</option>
-        </select>
-        <input
-          type="text"
-          id="customTicker"
-          class="input"
-          placeholder="Custom ticker (e.g. BRIS)"
-          maxlength="6"
-          style="text-transform:uppercase;"
-        />
-        <button id="loadBtn" class="btn btn--primary">Analyze</button>
-        <span class="data-note" id="dataNote">⚠ Demo data — connect API for live prices</span>
+      <!-- ── Stock Selector ──────────────────────────── -->
+      <section class="selector-card" id="main-analysis">
+        <div class="selector-row">
+          <div class="selector-group">
+            <label class="selector-label" for="stockSelect">Stock</label>
+            <select id="stockSelect" class="select">
+              <option value="IHSG">IHSG — Composite Index</option>
+              <option value="BBCA">BBCA — Bank Central Asia</option>
+              <option value="BBRI">BBRI — Bank Rakyat Indonesia</option>
+              <option value="TLKM">TLKM — Telkom Indonesia</option>
+              <option value="ASII">ASII — Astra International</option>
+              <option value="GOTO">GOTO — GoTo Group</option>
+              <option value="BMRI">BMRI — Bank Mandiri</option>
+              <option value="UNVR">UNVR — Unilever Indonesia</option>
+            </select>
+          </div>
+          <div class="selector-group">
+            <label class="selector-label" for="customTicker">Custom</label>
+            <input type="text" id="customTicker" class="input" placeholder="e.g. BRIS" maxlength="6" style="text-transform:uppercase;" />
+          </div>
+          <button id="loadBtn" class="btn btn--primary">
+            <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            Analyze
+          </button>
+          <span class="data-badge" id="dataNote">
+            <span class="data-badge__dot"></span>
+            Demo data
+          </span>
+        </div>
       </section>
 
-      <!-- Price header -->
-      <section class="price-header">
-        <span class="ticker-badge" id="tickerLabel">^JKSE</span>
-        <span class="price-big" id="priceDisplay">—</span>
-        <span class="change" id="changeDisplay">—</span>
-      </section>
-
-      <!-- Metric cards -->
-      <section class="metrics-grid" id="metricsRow"></section>
-
-      <!-- Price chart -->
-      <section class="card">
-        <div class="card__header">
-          <span class="card__title">Price + moving averages</span>
-          <div class="period-btns">
-            <button class="ctrl-btn active" data-period="30">1M</button>
-            <button class="ctrl-btn" data-period="90">3M</button>
-            <button class="ctrl-btn" data-period="180">6M</button>
-            <button class="ctrl-btn" data-period="365">1Y</button>
+      <!-- ── Price Header ────────────────────────────── -->
+      <section class="price-header animate-in">
+        <div class="price-header__left">
+          <span class="ticker-badge" id="tickerLabel">^JKSE</span>
+          <div class="price-header__price">
+            <span class="price-big" id="priceDisplay">—</span>
+            <span class="change" id="changeDisplay">—</span>
           </div>
         </div>
-        <div class="indicator-chips">
-          <div class="chip chip--on" data-ind="ma20"><span class="chip__dot" style="background:#378ADD;"></span>MA 20</div>
-          <div class="chip chip--on" data-ind="ma50"><span class="chip__dot" style="background:#D85A30;"></span>MA 50</div>
-          <div class="chip chip--on" data-ind="bb"><span class="chip__dot" style="background:#888780;"></span>Bollinger Bands</div>
+        <div class="price-header__right">
+          <div class="period-btns" id="periodBtns">
+            <button class="ctrl-btn" data-period="1M">1M</button>
+            <button class="ctrl-btn active" data-period="3M">3M</button>
+            <button class="ctrl-btn" data-period="6M">6M</button>
+            <button class="ctrl-btn" data-period="1Y">1Y</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Metric Cards ────────────────────────────── -->
+      <section class="metrics-grid animate-in" id="metricsRow">
+        <div class="metric metric--skeleton"><div class="skeleton-line"></div><div class="skeleton-line skeleton-line--short"></div></div>
+        <div class="metric metric--skeleton"><div class="skeleton-line"></div><div class="skeleton-line skeleton-line--short"></div></div>
+        <div class="metric metric--skeleton"><div class="skeleton-line"></div><div class="skeleton-line skeleton-line--short"></div></div>
+        <div class="metric metric--skeleton"><div class="skeleton-line"></div><div class="skeleton-line skeleton-line--short"></div></div>
+        <div class="metric metric--skeleton"><div class="skeleton-line"></div><div class="skeleton-line skeleton-line--short"></div></div>
+      </section>
+
+      <!-- ── Price Chart ─────────────────────────────── -->
+      <section class="card card--glass animate-in">
+        <div class="card__header">
+          <span class="card__title">
+            <svg class="card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>
+            Price Chart
+          </span>
+          <div class="indicator-chips">
+            <div class="chip chip--on" data-ind="ma20"><span class="chip__dot" style="background:#60a5fa;"></span>MA 20</div>
+            <div class="chip chip--on" data-ind="ma50"><span class="chip__dot" style="background:#f59e0b;"></span>MA 50</div>
+            <div class="chip chip--on" data-ind="bb"><span class="chip__dot" style="background:#888;"></span>Bollinger</div>
+            <div class="chip" data-ind="sr"><span class="chip__dot" style="background:#ef4444;"></span>S / R Levels</div>
+          </div>
         </div>
         <div class="chart-wrap chart-wrap--tall">
-          <canvas id="priceChart" role="img" aria-label="Price chart with moving averages">Price chart</canvas>
+          <canvas id="priceChart" role="img" aria-label="Price chart with technical indicators"></canvas>
         </div>
       </section>
 
-      <!-- Oscillators -->
-      <div class="oscillator-grid">
-        <section class="card">
-          <div class="card__header"><span class="card__title">RSI (14)</span></div>
-          <div class="rsi-zones">
-            <span class="zone zone--sell">Overbought &gt; 70</span>
-            <span class="zone zone--buy">Oversold &lt; 30</span>
+      <!-- ── Support & Resistance Card ───────────────── -->
+      <section class="card card--glass animate-in" id="srCard" style="display:none;">
+        <div class="card__header">
+          <span class="card__title">
+            <svg class="card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="6" x2="22" y2="6"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="18" x2="22" y2="18"/></svg>
+            Support &amp; Resistance Levels
+          </span>
+          <span class="card__subtitle">Based on Pivot Points &amp; Swing Detection</span>
+        </div>
+        <div id="srLevels" class="sr-grid"></div>
+      </section>
+
+      <!-- ── Oscillators ─────────────────────────────── -->
+      <div class="oscillator-grid animate-in">
+        <section class="card card--glass">
+          <div class="card__header">
+            <span class="card__title">RSI (14)</span>
+            <div class="rsi-zones">
+              <span class="zone zone--sell">Overbought &gt; 70</span>
+              <span class="zone zone--buy">Oversold &lt; 30</span>
+            </div>
           </div>
           <div class="chart-wrap chart-wrap--short">
-            <canvas id="rsiChart" role="img" aria-label="RSI momentum indicator">RSI chart</canvas>
+            <canvas id="rsiChart" role="img" aria-label="RSI momentum indicator"></canvas>
           </div>
         </section>
-        <section class="card">
-          <div class="card__header"><span class="card__title">MACD (12, 26, 9)</span></div>
-          <div class="rsi-zones">
-            <span class="zone zone--buy" style="color:#1D9E75;">— MACD</span>
-            <span class="zone zone--sell" style="color:#D85A30;">— Signal</span>
+        <section class="card card--glass">
+          <div class="card__header">
+            <span class="card__title">MACD (12, 26, 9)</span>
+            <div class="rsi-zones">
+              <span class="zone" style="color:#34d399;">— MACD</span>
+              <span class="zone" style="color:#f59e0b;">— Signal</span>
+            </div>
           </div>
           <div class="chart-wrap chart-wrap--short">
-            <canvas id="macdChart" role="img" aria-label="MACD signal chart">MACD chart</canvas>
+            <canvas id="macdChart" role="img" aria-label="MACD signal chart"></canvas>
           </div>
         </section>
       </div>
 
-      <!-- Signals -->
-      <section class="card">
-        <div class="card__header"><span class="card__title">Technical signals</span></div>
+      <!-- ── Technical Signals ────────────────────────── -->
+      <section class="card card--glass animate-in">
+        <div class="card__header">
+          <span class="card__title">
+            <svg class="card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Technical Signals
+          </span>
+        </div>
         <div class="signal-grid" id="signalGrid"></div>
-        <p class="signal-note">Signals are derived from technical indicators only. They do not constitute financial advice.</p>
+        <p class="signal-note">Signals are derived from technical indicators only and do not constitute financial advice.</p>
       </section>
 
-      <!-- Disclaimer -->
-      <footer class="disclaimer">
-        <strong>Disclaimer:</strong> All prices shown are <strong>simulated for demonstration purposes</strong>.
-        Real-time data requires integration with Yahoo Finance, IDX API, or a data provider.
+      <!-- ── Multi-Stock Comparison ──────────────────── -->
+      <section class="card card--glass card--comparison animate-in" id="comparison-section">
+        <div class="card__header">
+          <span class="card__title">
+            <svg class="card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Multi-Stock Comparison
+          </span>
+          <span class="card__subtitle">Select 2+ stocks to compare normalized performance</span>
+        </div>
+        <div class="compare-selector">
+          <div class="compare-chips" id="compareChips"></div>
+          <div class="compare-add">
+            <input type="text" id="compareCustom" class="input input--sm" placeholder="Add ticker..." maxlength="6" style="text-transform:uppercase;" />
+            <button id="addCompareBtn" class="btn btn--sm btn--outline">+ Add</button>
+          </div>
+        </div>
+        <div id="compareEmpty" class="compare-empty">
+          <svg class="compare-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <p>Select at least 2 stocks above to compare performance</p>
+        </div>
+        <div id="compareContent" style="display:none;">
+          <div class="chart-wrap chart-wrap--tall">
+            <canvas id="compareChart" role="img" aria-label="Multi-stock comparison chart"></canvas>
+          </div>
+          <div id="compareTable" class="compare-table-wrap"></div>
+        </div>
+      </section>
+
+      <!-- ── Disclaimer ──────────────────────────────── -->
+      <footer class="disclaimer animate-in">
+        <strong>Disclaimer:</strong> All prices may be <strong>simulated for demonstration</strong> when the server is offline.
         Technical indicators are analytical tools — not predictive models.
         Past signals do not guarantee future performance.
         Always conduct your own due diligence before investing.
@@ -120,6 +206,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
