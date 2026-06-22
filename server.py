@@ -243,6 +243,380 @@ def get_info(ticker: str):
     return {k: info.get(k) for k in wanted}
 
 
+# ── AI Analyst Verdict ─────────────────────────────────────────────────────
+
+def _sma(series, period):
+    return series.rolling(period).mean()
+
+def _rsi(series, period=14):
+    delta = series.diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    avg_gain = gain.rolling(period).mean()
+    avg_loss = loss.rolling(period).mean()
+    rs = avg_gain / (avg_loss + 1e-9)
+    return 100 - (100 / (1 + rs))
+
+def _macd(series):
+    ema12 = series.ewm(span=12).mean()
+    ema26 = series.ewm(span=26).mean()
+    macd_line = ema12 - ema26
+    signal_line = macd_line.ewm(span=9).mean()
+    return macd_line, signal_line
+
+def _pivot_points(prices_arr):
+    n = min(20, len(prices_arr))
+    recent = prices_arr[-n:]
+    high = max(recent)
+    low = min(recent)
+    close = recent[-1]
+    pp = (high + low + close) / 3
+    return {
+        "r2": pp + (high - low),
+        "r1": 2 * pp - low,
+        "pp": pp,
+        "s1": 2 * pp - high,
+        "s2": pp - (high - low),
+    }
+
+@app.get("/api/analysis/{ticker}")
+def get_analysis(ticker: str, period: str = "3M"):
+    """
+    AI Analyst Verdict — synthesizes all technical signals into a
+    plain-English research note with actionable buy/sell guidance.
+    """
+    symbol = yahoo_symbol(ticker)
+    try:
+        hist = yf.download(symbol, period="1y", interval="1d", progress=False, auto_adjust=True)
+    except Exception as e:
+        raise HTTPException(502, f"Yahoo Finance error: {e}")
+
+    if hist.empty:
+        raise HTTPException(404, f"No data for '{ticker}'")
+
+    if isinstance(hist.columns, pd.MultiIndex):
+        hist.columns = hist.columns.droplevel(1)
+
+    close = hist["Close"].dropna()
+    prices = close.values.tolist()
+
+    if len(prices) < 50:
+        raise HTTPException(400, "Not enough data for analysis")
+
+    last = prices[-1]
+    ticker_upper = ticker.upper()
+
+    # ── Compute indicators ──
+    ma20 = _sma(close, 20)
+    ma50 = _sma(close, 50)
+    rsi_series = _rsi(close)
+    macd_line, signal_line = _macd(close)
+    bb_mid = ma20
+    bb_std = close.rolling(20).std()
+    bb_upper = bb_mid + 2 * bb_std
+    bb_lower = bb_mid - 2 * bb_std
+
+    cur_ma20 = float(ma20.iloc[-1]) if not pd.isna(ma20.iloc[-1]) else last
+    cur_ma50 = float(ma50.iloc[-1]) if not pd.isna(ma50.iloc[-1]) else last
+    prev_ma20 = float(ma20.iloc[-2]) if not pd.isna(ma20.iloc[-2]) else cur_ma20
+    prev_ma50 = float(ma50.iloc[-2]) if not pd.isna(ma50.iloc[-2]) else cur_ma50
+    cur_rsi = float(rsi_series.iloc[-1]) if not pd.isna(rsi_series.iloc[-1]) else 50
+    cur_macd = float(macd_line.iloc[-1]) if not pd.isna(macd_line.iloc[-1]) else 0
+    cur_signal = float(signal_line.iloc[-1]) if not pd.isna(signal_line.iloc[-1]) else 0
+    cur_bb_upper = float(bb_upper.iloc[-1]) if not pd.isna(bb_upper.iloc[-1]) else last * 1.05
+    cur_bb_lower = float(bb_lower.iloc[-1]) if not pd.isna(bb_lower.iloc[-1]) else last * 0.95
+
+    # Support & resistance via pivot points
+    pivots = _pivot_points(prices)
+
+    # Annualized volatility (last 60 days)
+    ret_60 = close.pct_change().tail(60).dropna()
+    ann_vol = float(ret_60.std() * np.sqrt(252) * 100) if len(ret_60) > 10 else 20.0
+
+    # ── Scoring Engine (each dimension: 1–5) ──
+
+    # 1. Trend Score: price vs MA20/MA50 + crossover
+    trend_score = 3
+    if last > cur_ma20 and last > cur_ma50:
+        trend_score = 4
+    elif last > cur_ma20:
+        trend_score = 3.5
+    elif last < cur_ma20 and last < cur_ma50:
+        trend_score = 2
+    elif last < cur_ma50:
+        trend_score = 2.5
+    # Golden/Death cross bonus
+    if prev_ma20 < prev_ma50 and cur_ma20 > cur_ma50:
+        trend_score = min(5, trend_score + 1)
+    elif prev_ma20 > prev_ma50 and cur_ma20 < cur_ma50:
+        trend_score = max(1, trend_score - 1)
+
+    # 2. Momentum Score: RSI + MACD
+    momentum_score = 3
+    if 40 <= cur_rsi <= 60:
+        momentum_score = 3
+    elif 30 <= cur_rsi < 40:
+        momentum_score = 3.5  # near oversold = potential buy
+    elif cur_rsi < 30:
+        momentum_score = 4  # oversold = buy signal
+    elif 60 < cur_rsi <= 70:
+        momentum_score = 2.5
+    elif cur_rsi > 70:
+        momentum_score = 2  # overbought = caution
+    # MACD bonus
+    if cur_macd > cur_signal:
+        momentum_score = min(5, momentum_score + 0.5)
+    else:
+        momentum_score = max(1, momentum_score - 0.5)
+
+    # 3. Volatility Score: lower vol = safer = higher score
+    vol_score = 3
+    if ann_vol < 15:
+        vol_score = 5
+    elif ann_vol < 20:
+        vol_score = 4
+    elif ann_vol < 30:
+        vol_score = 3
+    elif ann_vol < 40:
+        vol_score = 2
+    else:
+        vol_score = 1
+
+    # 4. Value Score: position relative to S/R levels
+    value_score = 3
+    dist_to_support = (last - pivots["s1"]) / last * 100
+    dist_to_resistance = (pivots["r1"] - last) / last * 100
+    if dist_to_support < 2:
+        value_score = 4.5  # near support = good value
+    elif dist_to_support < 5:
+        value_score = 4
+    elif dist_to_resistance < 2:
+        value_score = 2  # near resistance = expensive
+    elif dist_to_resistance < 5:
+        value_score = 2.5
+    # Bollinger band squeeze
+    if last <= cur_bb_lower:
+        value_score = min(5, value_score + 0.5)
+    elif last >= cur_bb_upper:
+        value_score = max(1, value_score - 0.5)
+
+    # 5. ML Signal Score (will use data from /api/prices)
+    ml_score = 3  # neutral default
+
+    # ── Overall Verdict ──
+    total = trend_score + momentum_score + vol_score + value_score + ml_score
+    # Scale: 5–25 -> 0–100
+    verdict_score = round((total - 5) / 20 * 100)
+    verdict_score = max(0, min(100, verdict_score))
+
+    if verdict_score >= 75:
+        verdict = "Strong Buy"
+    elif verdict_score >= 60:
+        verdict = "Buy"
+    elif verdict_score >= 40:
+        verdict = "Hold"
+    elif verdict_score >= 25:
+        verdict = "Sell"
+    else:
+        verdict = "Strong Sell"
+
+    # ── Entry / Target / Stop Loss ──
+    entry_low = round(pivots["s1"], 0)
+    entry_high = round(pivots["pp"], 0)
+    target_price = round(pivots["r1"], 0)
+    stop_loss = round(pivots["s2"], 0)
+
+    upside = target_price - last
+    downside = last - stop_loss
+    rr_ratio = round(upside / downside, 1) if downside > 0 else 0
+
+    # ── Generate Plain-English Summary ──
+    trend_word = "bullish" if trend_score >= 3.5 else "bearish" if trend_score <= 2.5 else "neutral"
+    ma_desc = f"above both the 20-day and 50-day moving averages" if last > cur_ma20 and last > cur_ma50 else \
+              f"above the 20-day MA but below the 50-day MA" if last > cur_ma20 else \
+              f"below both the 20-day and 50-day moving averages" if last < cur_ma20 and last < cur_ma50 else \
+              f"below the 20-day MA but above the 50-day MA"
+
+    rsi_desc = f"RSI is in overbought territory at {cur_rsi:.0f}" if cur_rsi > 70 else \
+               f"RSI signals oversold conditions at {cur_rsi:.0f}" if cur_rsi < 30 else \
+               f"RSI is healthy at {cur_rsi:.0f}"
+
+    fmt_price = lambda v: f"{v:,.0f}"
+
+    summary = (
+        f"{ticker_upper} is currently in a {trend_word} trend. "
+        f"The price sits {ma_desc}, and {rsi_desc}. "
+    )
+
+    if cur_macd > cur_signal:
+        summary += "MACD shows bullish momentum with the line above the signal. "
+    else:
+        summary += "MACD indicates weakening momentum with the line below the signal. "
+
+    if verdict in ("Strong Buy", "Buy"):
+        summary += f"Consider entering near the support zone around {fmt_price(entry_low)} – {fmt_price(entry_high)}, targeting {fmt_price(target_price)} with a stop loss at {fmt_price(stop_loss)}."
+    elif verdict in ("Strong Sell", "Sell"):
+        summary += f"Caution is advised. The price may test support at {fmt_price(entry_low)}. Consider reducing exposure if it breaks below {fmt_price(stop_loss)}."
+    else:
+        summary += f"A wait-and-see approach is recommended. Watch for a breakout above {fmt_price(target_price)} or a pullback to {fmt_price(entry_low)} for better entry."
+
+    return {
+        "ticker": ticker_upper,
+        "verdict": verdict,
+        "verdict_score": verdict_score,
+        "summary": summary,
+        "scorecard": {
+            "trend": round(trend_score, 1),
+            "momentum": round(momentum_score, 1),
+            "volatility": round(vol_score, 1),
+            "value": round(value_score, 1),
+            "ml_signal": round(ml_score, 1),
+        },
+        "entry_zone": {"low": entry_low, "high": entry_high},
+        "target_price": target_price,
+        "stop_loss": stop_loss,
+        "risk_reward_ratio": rr_ratio,
+        "indicators": {
+            "ma20": round(cur_ma20, 0),
+            "ma50": round(cur_ma50, 0),
+            "rsi": round(cur_rsi, 1),
+            "macd": round(cur_macd, 2),
+            "macd_signal": round(cur_signal, 2),
+            "bb_upper": round(cur_bb_upper, 0),
+            "bb_lower": round(cur_bb_lower, 0),
+            "ann_vol": round(ann_vol, 1),
+        },
+    }
+
+
+# ── News Sentiment ─────────────────────────────────────────────────────────
+
+import urllib.request
+import xml.etree.ElementTree as ET
+import re
+import ssl
+
+BULLISH_KEYWORDS = [
+    "naik", "menguat", "rally", "rebound", "surplus", "laba", "bullish",
+    "positif", "cetak rekor", "tumbuh", "melonjak", "untung", "optimis",
+    "melesat", "hijau", "gain", "rise", "surge", "up", "profit", "growth",
+    "strong", "outperform", "upgrade", "buy", "breakout",
+]
+
+BEARISH_KEYWORDS = [
+    "turun", "melemah", "jatuh", "anjlok", "defisit", "rugi", "bearish",
+    "negatif", "koreksi", "ambruk", "pesimis", "merosot", "merah",
+    "drop", "fall", "crash", "decline", "loss", "weak", "downgrade",
+    "sell", "warning", "risk", "fear", "recession", "krisis",
+]
+
+NEWS_FEEDS = [
+    {"name": "Google News ID", "url": "https://news.google.com/rss/search?q=IHSG+OR+saham+OR+bursa&hl=id&gl=ID&ceid=ID:id"},
+    {"name": "CNBC Indonesia", "url": "https://www.cnbcindonesia.com/market/rss"},
+]
+
+def _score_headline(text: str) -> tuple:
+    """Score a headline as bullish/bearish/neutral."""
+    text_lower = text.lower()
+    bull_count = sum(1 for kw in BULLISH_KEYWORDS if kw in text_lower)
+    bear_count = sum(1 for kw in BEARISH_KEYWORDS if kw in text_lower)
+
+    if bull_count > bear_count:
+        score = min(3, bull_count - bear_count)
+        return "Bullish", score
+    elif bear_count > bull_count:
+        score = max(-3, -(bear_count - bull_count))
+        return "Bearish", score
+    return "Neutral", 0
+
+def _fetch_rss(url: str, source_name: str, max_items: int = 10) -> list:
+    """Fetch and parse RSS feed, return list of headline dicts."""
+    items = []
+    try:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (IDX Analyzer)"})
+        with urllib.request.urlopen(req, timeout=8, context=ctx) as resp:
+            data = resp.read()
+        root = ET.fromstring(data)
+
+        for item in root.iter("item"):
+            title = item.findtext("title", "")
+            link = item.findtext("link", "")
+            pub_date = item.findtext("pubDate", "")
+            if not title:
+                continue
+
+            # Clean title (remove CDATA, HTML)
+            title = re.sub(r"<[^>]+>", "", title).strip()
+
+            sentiment, impact = _score_headline(title)
+            items.append({
+                "title": title,
+                "link": link,
+                "source": source_name,
+                "pubDate": pub_date,
+                "sentiment": sentiment,
+                "impact": impact,
+            })
+            if len(items) >= max_items:
+                break
+    except Exception as e:
+        print(f"RSS fetch error ({source_name}): {e}")
+    return items
+
+@app.get("/api/news")
+def get_news():
+    """
+    Fetch latest Indonesian market news and score sentiment.
+    Returns headlines with sentiment tags and an overall mood score.
+    """
+    all_items = []
+    for feed in NEWS_FEEDS:
+        all_items.extend(_fetch_rss(feed["url"], feed["name"], max_items=8))
+
+    # Deduplicate by title similarity (simple)
+    seen_titles = set()
+    unique_items = []
+    for item in all_items:
+        title_key = item["title"][:50].lower()
+        if title_key not in seen_titles:
+            seen_titles.add(title_key)
+            unique_items.append(item)
+
+    # Limit to 12 items
+    unique_items = unique_items[:12]
+
+    # Calculate overall mood
+    if unique_items:
+        total_impact = sum(it["impact"] for it in unique_items)
+        avg_impact = total_impact / len(unique_items)
+        # Map -3..+3 to 0..100
+        mood_score = round((avg_impact + 3) / 6 * 100)
+        mood_score = max(0, min(100, mood_score))
+    else:
+        mood_score = 50
+
+    if mood_score >= 70:
+        mood_label = "Greedy"
+    elif mood_score >= 55:
+        mood_label = "Optimistic"
+    elif mood_score >= 45:
+        mood_label = "Neutral"
+    elif mood_score >= 30:
+        mood_label = "Cautious"
+    else:
+        mood_label = "Fearful"
+
+    return {
+        "headlines": unique_items,
+        "mood_score": mood_score,
+        "mood_label": mood_label,
+        "fetched_at": datetime.utcnow().isoformat() + "Z",
+    }
+
+
 @app.get("/api/health")
 def health():
     return {"status": "ok", "time": datetime.utcnow().isoformat() + "Z"}
@@ -252,3 +626,4 @@ def health():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+

@@ -1040,6 +1040,9 @@ async function loadStock(isAuto = false) {
   renderSRCard(prices);
   buildCharts(prices, labels);
 
+  // Load AI Analyst Verdict (async, doesn't block UI)
+  if (!isAuto) loadAnalysis();
+
   if (!isAuto) setLoading(false);
 
   // Auto-poll every 15 seconds if we are on live data
@@ -1106,7 +1109,156 @@ document.getElementById('compareCustom')?.addEventListener('keydown', e => {
   if (e.key === 'Enter') addCustomCompare();
 });
 
-// Smooth scroll for nav links
+// ── AI Analyst Verdict ─────────────────────────────────────
+
+async function loadAnalysis() {
+  try {
+    const resp = await fetch(`${API_BASE}/analysis/${state.ticker}?period=${state.period}`);
+    if (!resp.ok) throw new Error('Analysis API failed');
+    const data = await resp.json();
+    renderAnalystVerdict(data);
+  } catch (err) {
+    console.warn('Analysis load failed:', err);
+    // Show fallback
+    const summaryEl = document.getElementById('verdictSummary');
+    if (summaryEl) {
+      summaryEl.innerHTML = `<p class="verdict-summary__text" style="color:var(--color-red)">Error: ${err.message}. Please ensure the Python server is running and updated.</p>`;
+    }
+  }
+}
+
+function renderAnalystVerdict(data) {
+  const gaugeArc = document.getElementById('gaugeArc');
+  const gaugeLabel = document.getElementById('gaugeLabel');
+  const gaugeSublabel = document.getElementById('gaugeSublabel');
+  const summaryEl = document.getElementById('verdictSummary');
+  const stratEntry = document.getElementById('stratEntry');
+  const stratTarget = document.getElementById('stratTarget');
+  const stratStop = document.getElementById('stratStop');
+  const stratRR = document.getElementById('stratRR');
+
+  if (!gaugeArc || !gaugeLabel) return;
+
+  // Animate gauge arc: total arc length is ~251
+  const arcLength = 251;
+  const fillPct = data.verdict_score / 100;
+  const offset = arcLength * (1 - fillPct);
+
+  setTimeout(() => {
+    gaugeArc.style.transition = 'stroke-dashoffset 1.5s ease-out';
+    gaugeArc.setAttribute('stroke-dashoffset', offset);
+  }, 100);
+
+  gaugeLabel.textContent = data.verdict;
+  gaugeSublabel.textContent = `Score: ${data.verdict_score}/100`;
+
+  // Color the label based on verdict
+  const verdictColors = {
+    'Strong Buy': '#16a34a',
+    'Buy': '#22c55e',
+    'Hold': '#eab308',
+    'Sell': '#f59e0b',
+    'Strong Sell': '#ef4444',
+  };
+  gaugeLabel.setAttribute('fill', verdictColors[data.verdict] || 'var(--color-text-1)');
+
+  // Summary
+  if (summaryEl) {
+    summaryEl.innerHTML = `<p class="verdict-summary__text">${data.summary}</p>`;
+  }
+
+  // Strategy cards
+  const fmt = v => Number(v).toLocaleString('id-ID', { maximumFractionDigits: 0 });
+  if (stratEntry) stratEntry.textContent = `${fmt(data.entry_zone.low)} – ${fmt(data.entry_zone.high)}`;
+  if (stratTarget) stratTarget.textContent = fmt(data.target_price);
+  if (stratStop) stratStop.textContent = fmt(data.stop_loss);
+  if (stratRR) stratRR.textContent = `${data.risk_reward_ratio}x`;
+
+  // Scorecard stars
+  const renderStars = (score) => {
+    const full = Math.floor(score);
+    const half = score % 1 >= 0.4 ? 1 : 0;
+    const empty = 5 - full - half;
+    return '★'.repeat(full) + (half ? '⯪' : '') + '☆'.repeat(empty);
+  };
+
+  const scMap = {
+    scTrend: data.scorecard.trend,
+    scMomentum: data.scorecard.momentum,
+    scVolatility: data.scorecard.volatility,
+    scValue: data.scorecard.value,
+    scML: data.scorecard.ml_signal,
+  };
+
+  for (const [id, score] of Object.entries(scMap)) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.textContent = renderStars(score);
+      el.style.color = score >= 4 ? 'var(--color-green)' : score >= 3 ? 'var(--color-amber)' : 'var(--color-red)';
+    }
+  }
+}
+
+// ── News Sentiment ─────────────────────────────────────────
+
+async function loadNews() {
+  try {
+    const resp = await fetch(`${API_BASE}/news`);
+    if (!resp.ok) throw new Error('News API failed');
+    const data = await resp.json();
+    renderNewsFeed(data);
+  } catch (err) {
+    console.warn('News load failed:', err);
+    const feed = document.getElementById('newsFeed');
+    if (feed) {
+      feed.innerHTML = `<div class="news-placeholder" style="color:var(--color-red)">Error: ${err.message}. Please ensure the Python server is running.</div>`;
+    }
+  }
+}
+
+function renderNewsFeed(data) {
+  const moodFill = document.getElementById('moodFill');
+  const moodIndicator = document.getElementById('moodIndicator');
+  const moodText = document.getElementById('moodScoreText');
+  const feedEl = document.getElementById('newsFeed');
+
+  // Update mood meter
+  if (moodFill && moodIndicator && moodText) {
+    setTimeout(() => {
+      moodFill.style.width = '100%'; // always show full gradient
+      moodIndicator.style.left = `${data.mood_score}%`;
+    }, 200);
+    moodText.textContent = `Market Mood: ${data.mood_label} (${data.mood_score}/100)`;
+  }
+
+  // Render headlines
+  if (feedEl && data.headlines && data.headlines.length > 0) {
+    feedEl.innerHTML = data.headlines.map(item => {
+      const sentimentIcon = item.sentiment === 'Bullish' ? '📈' : item.sentiment === 'Bearish' ? '📉' : '➖';
+      // Parse and format date
+      let timeStr = '';
+      if (item.pubDate) {
+        try {
+          const d = new Date(item.pubDate);
+          timeStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        } catch { timeStr = item.pubDate; }
+      }
+      return `
+        <a class="news-item" href="${item.link}" target="_blank" rel="noopener noreferrer">
+          <div class="news-item__content">
+            <div class="news-item__title">${item.title}</div>
+            <div class="news-item__meta">${item.source}${timeStr ? ' · ' + timeStr : ''}</div>
+          </div>
+          <span class="news-pill news-pill--${item.sentiment}">${sentimentIcon} ${item.sentiment}</span>
+        </a>
+      `;
+    }).join('');
+  } else if (feedEl) {
+    feedEl.innerHTML = '<div class="news-placeholder">No news headlines available at this time.</div>';
+  }
+}
+
+// ── Smooth scroll for nav links ────────────────────────────
 document.querySelectorAll('.header-nav__link').forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
@@ -1124,3 +1276,7 @@ document.querySelectorAll('.header-nav__link').forEach(link => {
 applyTheme(state.theme);
 renderCompareChips();
 loadStock();
+loadNews();
+
+// Auto-refresh news every 5 minutes
+setInterval(loadNews, 300000);
