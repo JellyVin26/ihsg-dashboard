@@ -68,14 +68,14 @@
           </div>
           <div class="picks-header-metrics">
             <div class="pick-metric-card">
-              <div class="pick-metric-circle">84%</div>
+              <div class="pick-metric-circle skeleton" style="border-radius: 50%;">84%</div>
               <div class="pick-metric-info">
                 <span class="pick-metric-label">Success Rate</span>
                 <span class="pick-metric-value">Last 30 Days</span>
               </div>
             </div>
             <div class="pick-metric-card">
-              <div class="pick-metric-circle" style="color: var(--color-accent); border-color: var(--color-surface-2);">+12%</div>
+              <div class="pick-metric-circle skeleton" style="border-radius: 50%;">+12%</div>
               <div class="pick-metric-info">
                 <span class="pick-metric-label">Avg. Alpha</span>
                 <span class="pick-metric-value">Outperformance</span>
@@ -84,12 +84,10 @@
           </div>
         </section>
 
-        <!-- ── Picks Grid ──────────────────────────────── -->
         <section class="picks-grid animate-in" style="animation-delay: 0.1s;" id="picksContainer">
-          <!-- Dynamically populated by app.js loadPicks() -->
-          <div style="text-align: center; color: var(--color-text-3); width: 100%; padding: 40px 0;">
-            Running Quantitative Analysis Engine...
-          </div>
+          <div class="pick-card skeleton" style="height: 320px;"></div>
+          <div class="pick-card skeleton" style="height: 320px;"></div>
+          <div class="pick-card skeleton" style="height: 320px;"></div>
         </section>
 
       </main>

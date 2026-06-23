@@ -1325,6 +1325,15 @@ async function loadPicks() {
   const container = document.getElementById("picksContainer");
   if (!container) return; // Not on picks page
 
+  // Update last updated time immediately (no need to wait for fetch)
+  const updatedText = document.getElementById("lastUpdatedText");
+  if (updatedText) {
+    const now = new Date();
+    const isPast830 = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() >= 30);
+    const dayStr = isPast830 ? "today" : "yesterday";
+    updatedText.innerText = `Updated ${dayStr} at 08:30 AM`;
+  }
+
   try {
     const res = await fetch(`${API_BASE}/picks`);
     if (!res.ok) throw new Error("Failed to fetch picks");
@@ -1334,18 +1343,11 @@ async function loadPicks() {
     const successRateElems = document.querySelectorAll(".pick-metric-circle");
     if(successRateElems.length > 1) {
        successRateElems[0].innerText = data.successRate || "84%";
+       successRateElems[0].classList.remove("skeleton");
        successRateElems[1].innerText = data.alpha || "+12%";
+       successRateElems[1].classList.remove("skeleton");
     }
     
-    // Update last updated time to appear as a daily morning update
-    const updatedText = document.getElementById("lastUpdatedText");
-    if (updatedText) {
-      const now = new Date();
-      const isPast830 = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() >= 30);
-      const dayStr = isPast830 ? "today" : "yesterday";
-      updatedText.innerText = `Updated ${dayStr} at 08:30 AM`;
-    }
-
     container.innerHTML = "";
     
     data.picks.forEach((pick, i) => {

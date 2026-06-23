@@ -98,11 +98,19 @@
 }
 @keyframes pulse {
   0%, 100% { opacity: 0.3; }
-  50%      { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 @keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.skeleton {
+  animation: shimmer 2s infinite linear !important;
+  background: linear-gradient(to right, var(--color-surface-2) 4%, var(--color-surface) 25%, var(--color-surface-2) 36%) !important;
+  background-size: 1000px 100% !important;
+  border-color: transparent !important;
+  color: transparent !important;
+  border-radius: var(--radius-sm);
 }
 @keyframes glow {
   0%, 100% { box-shadow: 0 0 5px var(--color-accent-glow); }
