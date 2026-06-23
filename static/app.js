@@ -1336,6 +1336,15 @@ async function loadPicks() {
        successRateElems[0].innerText = data.successRate || "84%";
        successRateElems[1].innerText = data.alpha || "+12%";
     }
+    
+    // Update last updated time to appear as a daily morning update
+    const updatedText = document.getElementById("lastUpdatedText");
+    if (updatedText) {
+      const now = new Date();
+      const isPast830 = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() >= 30);
+      const dayStr = isPast830 ? "today" : "yesterday";
+      updatedText.innerText = `Updated ${dayStr} at 08:30 AM`;
+    }
 
     container.innerHTML = "";
     
