@@ -1326,7 +1326,7 @@ async function loadPicks() {
   if (!container) return; // Not on picks page
 
   try {
-    const res = await fetch(`${API_URL}/api/picks`);
+    const res = await fetch(`${API_BASE}/picks`);
     if (!res.ok) throw new Error("Failed to fetch picks");
     const data = await res.json();
     

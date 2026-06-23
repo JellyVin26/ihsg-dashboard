@@ -164,7 +164,7 @@
       }
 
       try {
-        const res = await fetch(`${API_URL}/api/analysis/${ticker}`);
+        const res = await fetch(`${API_BASE}/analysis/${ticker}`);
         if (!res.ok) throw new Error("Failed to load analysis");
         const data = await res.json();
         
