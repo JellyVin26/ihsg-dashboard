@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IDX Analyzer — Premium Stock Picks</title>
+  <meta name="description" content="Strategic entry points and high-probability targets curated by our proprietary AI engine and senior market analysts." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="picks">
+  <div class="app">
+    <!-- ── Sidebar ──────────────────────────────────────── -->
+    <aside class="sidebar">
+      <a href="index.html" class="sidebar__logo">
+        <div class="logo__icon-wrap">
+          <svg class="logo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <span class="logo__text">IDX Analyzer</span>
+      </a>
+      <nav class="sidebar__nav">
+        <a href="#premiumPicks" class="sidebar__link header-nav__link sidebar__link--active">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Top Picks
+        </a>
+        <a href="#proEdge" class="sidebar__link header-nav__link">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          Pro Edge
+        </a>
+      </nav>
+      
+      <div style="margin-top: auto; margin-bottom: 20px;">
+        <div class="card" style="padding: 16px; background: rgba(207, 240, 8, 0.05); border-color: rgba(207, 240, 8, 0.2);">
+          <p style="font-size: 11px; color: var(--color-text-2); margin-bottom: 12px; line-height: 1.4;">Get advanced technical signals &amp; real-time alerts.</p>
+          <button class="upgrade-btn">Upgrade Pro</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-wrapper">
+      <!-- ── Header ────────────────────────────────────── -->
+      <header class="app-header">
+        <div class="app-header__inner" style="justify-content: space-between;">
+          <nav class="header-nav" style="margin-left: 0;">
+            <a href="index.html" class="header-nav__link">Market Overview</a>
+            <a href="search.html" class="header-nav__link">Stock Search</a>
+            <a href="picks.html" class="header-nav__link header-nav__link--active">Stock Picks</a>
+          </nav>
+          <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light theme">
+            <svg id="themeIconMoon" class="theme-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg id="themeIconSun" class="theme-toggle__icon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="container">
+      
+        <!-- ── Picks Header ────────────────────────────── -->
+        <section class="picks-header-wrapper animate-in" id="premiumPicks">
+          <div class="picks-header-left">
+            <div class="picks-header-badge">
+              <span class="dot"></span> AI POWERED &bull; Updated 4 mins ago
+            </div>
+            <h1 class="picks-header-title">Premium Stock Picks</h1>
+            <p class="picks-header-subtitle">Strategic entry points and high-probability targets curated by our proprietary AI engine and senior market analysts.</p>
+          </div>
+          <div class="picks-header-metrics">
+            <div class="pick-metric-card">
+              <div class="pick-metric-circle">84%</div>
+              <div class="pick-metric-info">
+                <span class="pick-metric-label">Success Rate</span>
+                <span class="pick-metric-value">Last 30 Days</span>
+              </div>
+            </div>
+            <div class="pick-metric-card">
+              <div class="pick-metric-circle" style="color: var(--color-accent); border-color: var(--color-surface-2);">+12%</div>
+              <div class="pick-metric-info">
+                <span class="pick-metric-label">Avg. Alpha</span>
+                <span class="pick-metric-value">Outperformance</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Picks Grid ──────────────────────────────── -->
+        <section class="picks-grid animate-in" style="animation-delay: 0.1s;">
+          
+          <!-- Card 1: BBCA -->
+          <div class="pick-card">
+            <div class="pick-card-header">
+              <div class="pick-card-title">
+                <span class="pick-card-ticker">BBCA</span>
+                <span class="pick-card-name">Bank Central Asia</span>
+              </div>
+              <span class="pick-card-badge">Strong Buy</span>
+            </div>
+            
+            <div class="pick-card-chart">
+              <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="width:100%; height:100%; stroke:var(--color-accent); fill:none; stroke-width:2px;">
+                <polyline points="0,25 10,22 20,25 30,22 40,25 50,22 60,15 70,18 80,15 90,12 100,16"/>
+              </svg>
+            </div>
+            
+            <div class="pick-reasoning">
+              <div class="pick-section-title">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                Reasoning
+              </div>
+              <ul class="pick-reasoning-list">
+                <li>Bullish RSI divergence on 4H timeframe signals reversal.</li>
+                <li>Volume breakout above key 9,750 resistance level.</li>
+              </ul>
+            </div>
+            
+            <div class="pick-zones">
+              <div class="pick-zone-box">
+                <span class="pick-zone-label">Buy Area</span>
+                <span class="pick-zone-value">9,800 - 10,000</span>
+              </div>
+              <div class="pick-zone-box stop-loss">
+                <span class="pick-zone-label">Stop Loss</span>
+                <span class="pick-zone-value">9,600</span>
+              </div>
+            </div>
+            
+            <div class="pick-targets">
+              <div class="pick-target-row">
+                <div class="pick-target-left">
+                  <span class="pick-target-label">Target 1 (TP1)</span>
+                  <span class="pick-target-value">10,450</span>
+                </div>
+                <span class="pick-target-pct">+5.2%</span>
+              </div>
+              <div class="pick-target-row tp2">
+                <div class="pick-target-left">
+                  <span class="pick-target-label">Target 2 (TP2)</span>
+                  <span class="pick-target-value">11,200</span>
+                </div>
+                <span class="pick-target-pct">+12.8%</span>
+              </div>
+            </div>
+            
+            <div class="pick-card-footer">
+              <span class="pick-card-time">Posted 2 hours ago</span>
+              <a href="#" class="pick-card-link">View Analysis &rarr;</a>
+            </div>
+          </div>
+
+          <!-- Card 2: ASII -->
+          <div class="pick-card">
+            <div class="pick-card-header">
+              <div class="pick-card-title">
+                <span class="pick-card-ticker">ASII</span>
+                <span class="pick-card-name">Astra International</span>
+              </div>
+              <span class="pick-card-badge badge-buy">Buy</span>
+            </div>
+            
+            <div class="pick-card-chart">
+              <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="width:100%; height:100%; stroke:var(--color-accent); fill:none; stroke-width:2px;">
+                <polyline points="0,20 15,22 25,18 35,16 45,21 55,14 65,12 80,16 90,14 100,8"/>
+              </svg>
+            </div>
+            
+            <div class="pick-reasoning">
+              <div class="pick-section-title">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                Reasoning
+              </div>
+              <ul class="pick-reasoning-list">
+                <li>Automotive sector recovery tailwinds.</li>
+                <li>Major institutional accumulation identified.</li>
+              </ul>
+            </div>
+            
+            <div class="pick-zones">
+              <div class="pick-zone-box">
+                <span class="pick-zone-label">Buy Area</span>
+                <span class="pick-zone-value">5,100 - 5,225</span>
+              </div>
+              <div class="pick-zone-box stop-loss">
+                <span class="pick-zone-label">Stop Loss</span>
+                <span class="pick-zone-value">4,950</span>
+              </div>
+            </div>
+            
+            <div class="pick-targets">
+              <div class="pick-target-row">
+                <div class="pick-target-left">
+                  <span class="pick-target-label">Target 1 (TP1)</span>
+                  <span class="pick-target-value">5,600</span>
+                </div>
+                <span class="pick-target-pct">+8.1%</span>
+              </div>
+              <div class="pick-target-row tp2">
+                <div class="pick-target-left">
+                  <span class="pick-target-label">Target 2 (TP2)</span>
+                  <span class="pick-target-value">6,050</span>
+                </div>
+                <span class="pick-target-pct">+15.5%</span>
+              </div>
+            </div>
+            
+            <div class="pick-card-footer">
+              <span class="pick-card-time">Posted 5 hours ago</span>
+              <a href="#" class="pick-card-link">View Analysis &rarr;</a>
+            </div>
+          </div>
+
+          <!-- Card 3: TLKM -->
+          <div class="pick-card">
+            <div class="pick-card-header">
+              <div class="pick-card-title">
+                <span class="pick-card-ticker">TLKM</span>
+                <span class="pick-card-name">Telkom Indonesia</span>
+              </div>
+              <span class="pick-card-badge">Strong Buy</span>
+            </div>
+            
+            <div class="pick-card-chart">
+              <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="width:100%; height:100%; stroke:var(--color-accent); fill:none; stroke-width:2px;">
+                <polyline points="0,26 20,25 40,22 60,19 80,15 90,17 100,12"/>
+              </svg>
+            </div>
+            
+            <div class="pick-reasoning">
+              <div class="pick-section-title">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                Reasoning
+              </div>
+              <ul class="pick-reasoning-list">
+                <li>Undervalued compared to global peers.</li>
+                <li>Cup and handle pattern forming on daily.</li>
+              </ul>
+            </div>
+            
+            <div class="pick-zones">
+              <div class="pick-zone-box">
+                <span class="pick-zone-label">Buy Area</span>
+                <span class="pick-zone-value">3,850 - 3,920</span>
+              </div>
+              <div class="pick-zone-box stop-loss">
+                <span class="pick-zone-label">Stop Loss</span>
+                <span class="pick-zone-value">3,720</span>
+              </div>
+            </div>
+            
+            <div class="pick-targets">
+              <div class="pick-target-row">
+                <div class="pick-target-left">
+                  <span class="pick-target-label">Target 1 (TP1)</span>
+                  <span class="pick-target-value">4,150</span>
+                </div>
+                <span class="pick-target-pct">+6.2%</span>
+              </div>
+              <div class="pick-target-row tp2">
+                <div class="pick-target-left">
+                  <span class="pick-target-label">Target 2 (TP2)</span>
+                  <span class="pick-target-value">4,400</span>
+                </div>
+                <span class="pick-target-pct">+12.1%</span>
+              </div>
+            </div>
+            
+            <div class="pick-card-footer">
+              <span class="pick-card-time">Posted 8 hours ago</span>
+              <a href="#" class="pick-card-link">View Analysis &rarr;</a>
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
