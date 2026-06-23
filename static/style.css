@@ -70,7 +70,7 @@
   --color-amber:       #d97706;
   --color-amber-dim:   rgba(217, 119, 6, 0.08);
   --gradient-header:   linear-gradient(135deg, #f5f5f5 0%, #ffffff 50%, #f5f5f5 100%);
-  --gradient-accent:   linear-gradient(135deg, #CFF008, #e2f554);
+  --gradient-accent:   linear-gradient(135deg, #8a9f00, #a3be05);
   --shadow-card:       0 1px 3px rgba(0,0,0,0.06), 0 1px 1px rgba(0,0,0,0.04);
   --shadow-hover:      0 8px 25px rgba(0,0,0,0.08);
   --shadow-glow:       0 0 15px rgba(138, 159, 0, 0.15);
