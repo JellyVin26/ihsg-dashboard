@@ -511,7 +511,7 @@ BEARISH_KEYWORDS = [
 ]
 
 NEWS_FEEDS = [
-    {"name": "Google News ID", "url": "https://news.google.com/rss/search?q=IHSG+OR+saham+OR+bursa&hl=id&gl=ID&ceid=ID:id"},
+    {"name": "CNN Indonesia", "url": "https://www.cnnindonesia.com/ekonomi/rss"},
     {"name": "CNBC Indonesia", "url": "https://www.cnbcindonesia.com/market/rss"},
 ]
 
