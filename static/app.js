@@ -1320,12 +1320,116 @@ document.querySelectorAll('.header-nav__link').forEach(link => {
   });
 });
 
+// ── Stock Picks ──────────────────────────────────────────
+async function loadPicks() {
+  const container = document.getElementById("picksContainer");
+  if (!container) return; // Not on picks page
+
+  try {
+    const res = await fetch(`${API_URL}/api/picks`);
+    if (!res.ok) throw new Error("Failed to fetch picks");
+    const data = await res.json();
+    
+    // Update header metrics
+    const successRateElems = document.querySelectorAll(".pick-metric-circle");
+    if(successRateElems.length > 1) {
+       successRateElems[0].innerText = data.successRate || "84%";
+       successRateElems[1].innerText = data.alpha || "+12%";
+    }
+
+    container.innerHTML = "";
+    
+    data.picks.forEach((pick, i) => {
+      let reasonsHtml = pick.reasons.map(r => `<li>${r}</li>`).join("");
+      
+      // We render a tiny static SVG path based on chartData
+      const minPrice = Math.min(...pick.chartData);
+      const maxPrice = Math.max(...pick.chartData);
+      const range = maxPrice - minPrice || 1;
+      const points = pick.chartData.map((p, idx) => {
+        const x = (idx / (pick.chartData.length - 1)) * 100;
+        const y = 30 - (((p - minPrice) / range) * 20 + 5);
+        return `${x},${y}`;
+      }).join(" ");
+      
+      const badgeClass = pick.badge === "Buy" ? "badge-buy" : "";
+
+      const card = document.createElement("div");
+      card.className = "pick-card";
+      card.innerHTML = `
+        <div class="pick-card-header">
+          <div class="pick-card-title">
+            <span class="pick-card-ticker">${pick.ticker}</span>
+            <span class="pick-card-name">${pick.name}</span>
+          </div>
+          <span class="pick-card-badge ${badgeClass}">${pick.badge}</span>
+        </div>
+        
+        <div class="pick-card-chart">
+          <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="width:100%; height:100%; stroke:var(--color-accent); fill:none; stroke-width:2px; vector-effect:non-scaling-stroke;">
+            <polyline points="${points}" />
+          </svg>
+        </div>
+        
+        <div class="pick-reasoning">
+          <div class="pick-section-title">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            Reasoning
+          </div>
+          <ul class="pick-reasoning-list">
+            ${reasonsHtml}
+          </ul>
+        </div>
+        
+        <div class="pick-zones">
+          <div class="pick-zone-box">
+            <span class="pick-zone-label">Buy Area</span>
+            <span class="pick-zone-value">${pick.buyArea}</span>
+          </div>
+          <div class="pick-zone-box stop-loss">
+            <span class="pick-zone-label">Stop Loss</span>
+            <span class="pick-zone-value">${pick.stopLoss}</span>
+          </div>
+        </div>
+        
+        <div class="pick-targets">
+          <div class="pick-target-row">
+            <div class="pick-target-left">
+              <span class="pick-target-label">Target 1 (TP1)</span>
+              <span class="pick-target-value">${pick.tp1}</span>
+            </div>
+            <span class="pick-target-pct">${pick.tp1Pct}</span>
+          </div>
+          <div class="pick-target-row tp2">
+            <div class="pick-target-left">
+              <span class="pick-target-label">Target 2 (TP2)</span>
+              <span class="pick-target-value">${pick.tp2}</span>
+            </div>
+            <span class="pick-target-pct">${pick.tp2Pct}</span>
+          </div>
+        </div>
+        
+        <div class="pick-card-footer">
+          <span class="pick-card-time">${pick.time}</span>
+          <a href="analysis.html?ticker=${pick.ticker}" class="pick-card-link">View Analysis &rarr;</a>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = `<div class="error" style="text-align:center;width:100%;padding:40px;">Failed to load picks.</div>`;
+  }
+}
+
 // ── Initialize ─────────────────────────────────────────────
 
 applyTheme(state.theme);
 renderCompareChips();
 loadStock();
 loadNews();
+loadPicks();
 
 // Auto-refresh news every 5 minutes
 setInterval(loadNews, 300000);
