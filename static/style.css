@@ -195,6 +195,25 @@ body {
   border-bottom-left-radius: 0;
 }
 
+.upgrade-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--color-accent);
+  color: #131313;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.upgrade-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
 /* ── Main Wrapper ────────────────────────────────────────── */
 .main-wrapper {
   flex: 1;
