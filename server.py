@@ -758,8 +758,8 @@ def get_picks():
     analyzed.sort(key=lambda x: x["score"], reverse=True)
     return {"picks": analyzed[:3], "successRate": "86%", "alpha": "+14.2%"}
 
-@app.get("/api/analysis/{ticker}")
-def get_analysis(ticker: str):
+@app.get("/api/deep-analysis/{ticker}")
+def get_deep_analysis(ticker: str):
     """
     Detailed technical breakdown for a single stock pick.
     """
