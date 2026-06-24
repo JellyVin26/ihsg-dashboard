@@ -29,7 +29,7 @@ const state = {
   ticker: 'IHSG',
   period: '3M',
   indicators: { ma20: false, ma50: false, bb: false, sr: false },
-  charts: { price: null, rsi: null, macd: null, compare: null },
+  charts: { price: null, rsi: null, macd: null, compare: null, macro: null },
   usingLiveData: false,
   compareTickers: [],
   compareDataCache: {},
@@ -1434,6 +1434,102 @@ async function loadPicks() {
   }
 }
 
+// ── Macro Correlation ──────────────────────────────────────
+async function loadMacroCorrelation() {
+  const canvas = document.getElementById("macroChart");
+  if (!canvas) return; // Not on overview page
+  
+  try {
+    const res = await fetch(`${API_BASE}/macro/usd-ihsg`);
+    if (!res.ok) throw new Error("Failed to load macro data");
+    const data = await res.json();
+    
+    document.getElementById("macroSkeleton").style.display = "none";
+    
+    const badge = document.getElementById("macroBadge");
+    badge.style.display = "block";
+    let corrText = "";
+    if (data.correlation > 0.5) { corrText = "Strong Positive"; badge.style.color = "var(--color-green)"; }
+    else if (data.correlation < -0.5) { corrText = "Strong Inverse"; badge.style.color = "var(--color-red)"; }
+    else { corrText = "Weak Correlation"; badge.style.color = "var(--color-text-2)"; }
+    badge.innerText = `Corr: ${data.correlation.toFixed(2)} (${corrText})`;
+    
+    const ctx = canvas.getContext("2d");
+    const isDark = state.theme === "dark";
+    const gridColor = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.05)";
+    const tickColor = isDark ? "#666" : "#888";
+    
+    if (state.charts.macro) {
+      state.charts.macro.destroy();
+    }
+    
+    state.charts.macro = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: data.dates,
+        datasets: [
+          {
+            label: "IHSG (^JKSE)",
+            data: data.ihsg,
+            borderColor: "var(--color-accent)",
+            backgroundColor: "transparent",
+            borderWidth: 2,
+            pointRadius: 0,
+            yAxisID: "y"
+          },
+          {
+            label: "USD/IDR",
+            data: data.idr,
+            borderColor: "#3b82f6",
+            backgroundColor: "transparent",
+            borderWidth: 2,
+            pointRadius: 0,
+            yAxisID: "y1"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: true, labels: { color: tickColor } },
+          tooltip: {
+            backgroundColor: isDark ? "#262626" : "#fff",
+            titleColor: isDark ? "#fff" : "#131313",
+            bodyColor: isDark ? "#fff" : "#131313",
+            borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+            borderWidth: 1
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            ticks: { color: tickColor, maxTicksLimit: 8 }
+          },
+          y: {
+            type: "linear",
+            display: true,
+            position: "left",
+            grid: { color: gridColor },
+            ticks: { color: tickColor }
+          },
+          y1: {
+            type: "linear",
+            display: true,
+            position: "right",
+            grid: { drawOnChartArea: false },
+            ticks: { color: tickColor }
+          }
+        }
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    document.getElementById("macroSkeleton").style.display = "none";
+  }
+}
+
 // ── Initialize ─────────────────────────────────────────────
 
 applyTheme(state.theme);
@@ -1441,6 +1537,7 @@ renderCompareChips();
 loadStock();
 loadNews();
 loadPicks();
+loadMacroCorrelation();
 
 // Auto-refresh news every 5 minutes
 setInterval(loadNews, 300000);

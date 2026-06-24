@@ -816,6 +816,41 @@ def get_deep_analysis(ticker: str):
         "volume": [float(x) for x in df["Volume"].values.flatten()[-60:]]
     }
 
+@app.get("/api/macro/usd-ihsg")
+def get_macro_usd_ihsg():
+    """
+    Fetches USD/IDR and IHSG data over 1 year, computes Pearson correlation.
+    """
+    try:
+        # Download both tickers for 1 Year
+        data = yf.download("IDR=X ^JKSE", period="1y", interval="1d", auto_adjust=False, progress=False)
+        
+        # Extract closing prices
+        close_data = data["Close"]
+        
+        # Drop rows where either is NaN to ensure perfectly aligned dates
+        close_data = close_data.dropna()
+        
+        if close_data.empty:
+            raise HTTPException(500, "Failed to download macro data")
+            
+        idr = close_data["IDR=X"].values
+        ihsg = close_data["^JKSE"].values
+        dates = close_data.index.strftime("%Y-%m-%d").tolist()
+        
+        # Calculate Pearson correlation coefficient
+        correlation = float(np.corrcoef(idr, ihsg)[0, 1])
+        
+        return {
+            "dates": dates,
+            "idr": [float(x) for x in idr],
+            "ihsg": [float(x) for x in ihsg],
+            "correlation": correlation
+        }
+    except Exception as e:
+        print(f"Error fetching macro data: {e}")
+        raise HTTPException(500, "Error fetching macro data")
+
 @app.get("/api/health")
 def health():
     return {"status": "ok", "time": datetime.utcnow().isoformat() + "Z"}

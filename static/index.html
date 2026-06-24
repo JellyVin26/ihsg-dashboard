@@ -181,6 +181,26 @@
       </section>
 
 
+      <!-- ── Macro Correlation ────────────────────────────── -->
+      <section class="card card--glass animate-in" id="macroSection">
+        <div class="card__header" style="justify-content: space-between; align-items: center;">
+          <span class="card__title" style="display: flex; align-items: center; gap: 8px;">
+            <svg class="card__title-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            USD/IDR vs IHSG Correlation
+          </span>
+          <div class="macro-badge" id="macroBadge" style="display: none; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: rgba(255,255,255,0.1);">
+            Calculating...
+          </div>
+        </div>
+        <div class="chart-wrap chart-wrap--tall" style="position: relative;">
+          <!-- Skeleton Loader -->
+          <div id="macroSkeleton" class="skeleton" style="position: absolute; inset: 0; border-radius: var(--radius-sm);"></div>
+          <canvas id="macroChart" role="img" aria-label="USD/IDR vs IHSG chart"></canvas>
+        </div>
+        <p class="signal-note" style="margin-top: 10px;">Visualizing the 1-year relationship between the Indonesian Rupiah exchange rate and the broader stock market.</p>
+      </section>
+
+
       <!-- ── News Sentiment ─────────────────────────────── -->
       <section class="card card--glass animate-in" id="newsSection">
         <div class="card__header">
