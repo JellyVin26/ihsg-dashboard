@@ -14,6 +14,7 @@ import yfinance as yf
 from datetime import datetime
 import math
 import numpy as np
+from email.utils import parsedate_to_datetime
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
@@ -605,6 +606,16 @@ def get_news():
         if title_key not in seen_titles:
             seen_titles.add(title_key)
             unique_items.append(item)
+
+    # Sort chronologically (newest first)
+    def sort_by_date(item):
+        try:
+            dt = parsedate_to_datetime(item["pubDate"])
+            return dt.timestamp()
+        except Exception:
+            return 0.0
+
+    unique_items.sort(key=sort_by_date, reverse=True)
 
     # Limit to 12 items
     unique_items = unique_items[:12]
