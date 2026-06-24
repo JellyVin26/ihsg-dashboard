@@ -618,9 +618,17 @@ function buildCharts(prices, labels) {
   const rsiV = rsi(prices);
   const { macdLine, signalLine, histogram } = macd(prices);
 
-  // Destroy existing charts
-  Object.values(state.charts).forEach(chart => { if (chart) chart.destroy(); });
-  state.charts = { price: null, rsi: null, macd: null, compare: state.charts.compare };
+  // Destroy existing charts that are being rebuilt
+  if (state.charts.price) state.charts.price.destroy();
+  if (state.charts.rsi) state.charts.rsi.destroy();
+  if (state.charts.macd) state.charts.macd.destroy();
+  
+  state.charts = { 
+    ...state.charts,
+    price: null, 
+    rsi: null, 
+    macd: null 
+  };
 
   const baseOpts = getBaseChartOptions();
 
@@ -1527,6 +1535,12 @@ async function loadMacroCorrelation() {
   } catch (err) {
     console.error(err);
     document.getElementById("macroSkeleton").style.display = "none";
+    const badge = document.getElementById("macroBadge");
+    if (badge) {
+      badge.style.display = "block";
+      badge.style.color = "red";
+      badge.innerText = "Error: " + err.message;
+    }
   }
 }
 
