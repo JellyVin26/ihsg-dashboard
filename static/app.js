@@ -1471,7 +1471,7 @@ async function loadMacroCorrelation() {
           {
             label: "IHSG (^JKSE)",
             data: data.ihsg,
-            borderColor: "var(--color-accent)",
+            borderColor: isDark ? "#CFF008" : "#8a9f00",
             backgroundColor: "transparent",
             borderWidth: 2,
             pointRadius: 0,
