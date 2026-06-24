@@ -508,7 +508,7 @@ BEARISH_KEYWORDS = [
     "turun", "melemah", "jatuh", "anjlok", "defisit", "rugi", "bearish",
     "negatif", "koreksi", "ambruk", "pesimis", "merosot", "merah",
     "drop", "fall", "crash", "decline", "loss", "weak", "downgrade",
-    "sell", "warning", "risk", "fear", "recession", "krisis",
+    "sell", "warning", "risk", "fear", "recession", "krisis", "loyo",
 ]
 
 NEWS_FEEDS = [
@@ -519,8 +519,23 @@ NEWS_FEEDS = [
 def _score_headline(text: str) -> tuple:
     """Score a headline as bullish/bearish/neutral."""
     text_lower = text.lower()
-    bull_count = sum(1 for kw in BULLISH_KEYWORDS if kw in text_lower)
-    bear_count = sum(1 for kw in BEARISH_KEYWORDS if kw in text_lower)
+    
+    # Forex context overrides
+    is_usd_rupiah_news = "rupiah" in text_lower or "dolar" in text_lower or "usd" in text_lower
+    
+    if is_usd_rupiah_news:
+        bull_count = sum(1 for kw in ["rupiah menguat", "dolar turun", "dolar melemah", "rupiah naik"] if kw in text_lower)
+        bear_count = sum(1 for kw in ["rupiah melemah", "rupiah turun", "rupiah loyo", "dolar naik", "dolar menguat"] if kw in text_lower)
+        
+        # Fallbacks for forex
+        if bear_count == 0 and bull_count == 0:
+            if "loyo" in text_lower or "melemah" in text_lower:
+                bear_count += 1
+            if "naik" in text_lower and ("dolar" in text_lower or "usd" in text_lower):
+                bear_count += 1
+    else:
+        bull_count = sum(1 for kw in BULLISH_KEYWORDS if kw in text_lower)
+        bear_count = sum(1 for kw in BEARISH_KEYWORDS if kw in text_lower)
 
     if bull_count > bear_count:
         score = min(3, bull_count - bear_count)
