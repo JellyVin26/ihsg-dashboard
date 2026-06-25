@@ -203,7 +203,7 @@ def get_prices(ticker: str, period: str = "3M"):
     volume = sliced_df["Volume"].fillna(0)
 
     prices = [safe_float(v) for v in close.values]
-    dates  = [d.strftime("%d %b") for d in close.index]
+    dates  = [d.strftime("%Y-%m-%d") for d in close.index]
     vols   = [int(v) for v in volume.reindex(close.index).fillna(0).values]
 
     latest     = prices[-1] if prices else None

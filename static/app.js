@@ -572,165 +572,94 @@ function getChartColors() {
     priceFill: isDark ? 'rgba(207,240,8,0.1)' : 'rgba(138,159,0,0.1)',
     ma20: '#ffffff',
     ma50: '#8F8F8F',
-    bbBorder: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
-    bbFill: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-    rsi: '#CFF008',
-    macdLine: '#CFF008',
-    macdSignal: '#8F8F8F',
-    histUp: isDark ? 'rgba(207,240,8,0.5)' : 'rgba(138,159,0,0.5)',
-    histDown: isDark ? 'rgba(239,68,68,0.5)' : 'rgba(220,38,38,0.5)',
+    bbBorder,
+    bbFill,
+    rsi,
+    macdLine,
+    macdSignal,
+    histUp,
+    histDown,
     tooltipBg: isDark ? 'rgba(16,16,24,0.95)' : 'rgba(255,255,255,0.95)',
     tooltipText: isDark ? '#eae9e4' : '#1a1a20',
     tooltipBorder: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
   };
 }
 
-function getBaseChartOptions() {
-  const c = getChartColors();
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: { duration: 600, easing: 'easeOutQuart' },
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: c.tooltipBg,
-        titleColor: c.tooltipText,
-        bodyColor: c.tooltipText,
-        borderColor: c.tooltipBorder,
-        borderWidth: 1,
-        cornerRadius: 8,
-        padding: 10,
-        titleFont: { family: "'Urbanist', sans-serif", size: 12, weight: '600' },
-        bodyFont: { family: "'JetBrains Mono', monospace", size: 12 },
-        displayColors: true,
-        boxPadding: 4,
-      },
-    },
-    scales: {
-      x: {
-        ticks: { color: c.tick, font: { size: 11, family: "'Urbanist', sans-serif" }, maxTicksLimit: 8 },
-        grid: { color: c.grid },
-        border: { display: false },
-      },
-      y: {
-        ticks: { color: c.tick, font: { size: 11, family: "'Urbanist', sans-serif" } },
-        grid: { color: c.grid },
-        border: { display: false },
-      },
-    },
-  };
-}
-
 function buildCharts(prices, labels) {
   const c = getChartColors();
+  
+  if (state.charts.price) { state.charts.price.remove(); state.charts.price = null; }
+  if (state.charts.rsi) { state.charts.rsi.remove(); state.charts.rsi = null; }
+  if (state.charts.macd) { state.charts.macd.remove(); state.charts.macd = null; }
+
+  const priceContainer = document.getElementById('priceChart');
+  const rsiContainer = document.getElementById('rsiChart');
+  const macdContainer = document.getElementById('macdChart');
+
+  if (!priceContainer || !rsiContainer || !macdContainer) return;
+
+  const chartOpts = {
+    layout: { background: { type: 'solid', color: 'transparent' }, textColor: c.tick },
+    grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
+    timeScale: { timeVisible: false, borderVisible: false, fixLeftEdge: true, fixRightEdge: true },
+    rightPriceScale: { borderVisible: false },
+    crosshair: { mode: 0 },
+    handleScroll: { mouseWheel: true, pressedMouseMove: true },
+    handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
+  };
+
+  // Build data arrays
+  const lineData = prices.map((p, i) => ({ time: labels[i], value: p }));
   const ma20v = sma(prices, 20);
   const ma50v = sma(prices, 50);
   const bb = bollingerBands(prices);
   const rsiV = rsi(prices);
   const { macdLine, signalLine, histogram } = macd(prices);
 
-  // Destroy existing charts that are being rebuilt
-  if (state.charts.price) state.charts.price.destroy();
-  if (state.charts.rsi) state.charts.rsi.destroy();
-  if (state.charts.macd) state.charts.macd.destroy();
-  
-  state.charts = { 
-    ...state.charts,
-    price: null, 
-    rsi: null, 
-    macd: null 
-  };
+  const ma20Data = ma20v.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
+  const ma50Data = ma50v.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
+  const bbUpperData = bb.map((b, i) => b.upper !== null ? { time: labels[i], value: b.upper } : null).filter(Boolean);
+  const bbLowerData = bb.map((b, i) => b.lower !== null ? { time: labels[i], value: b.lower } : null).filter(Boolean);
 
-  const baseOpts = getBaseChartOptions();
-
-  // ── Price Chart with S/R annotations ──────────────
-  const priceSets = [{
-    label: 'Price',
-    data: prices,
-    borderColor: c.price,
-    backgroundColor: c.priceFill,
-    borderWidth: 2,
-    pointRadius: 0,
-    pointHoverRadius: 4,
-    pointHoverBackgroundColor: c.price,
-    fill: true,
-    tension: 0.35,
-    order: 3,
-  }];
-
-  if (state.indicators.ma20) priceSets.push({
-    label: 'MA 20', data: ma20v, borderColor: c.ma20,
-    borderWidth: 1.5, borderDash: [5, 3], pointRadius: 0, fill: false, tension: 0.35, order: 2,
+  // Price Chart
+  state.charts.price = LightweightCharts.createChart(priceContainer, chartOpts);
+  const priceSeries = state.charts.price.addAreaSeries({
+    lineColor: c.price,
+    topColor: c.priceFill.replace('0.1)', '0.3)'),
+    bottomColor: 'transparent',
+    lineWidth: 2,
+    priceFormat: { type: 'price', precision: 0, minMove: 1 }
   });
-  if (state.indicators.ma50) priceSets.push({
-    label: 'MA 50', data: ma50v, borderColor: c.ma50,
-    borderWidth: 1.5, borderDash: [7, 3], pointRadius: 0, fill: false, tension: 0.35, order: 2,
-  });
+  priceSeries.setData(lineData);
+
+  if (state.indicators.ma20) {
+    const ma20Series = state.charts.price.addLineSeries({ color: c.ma20, lineWidth: 1, lineStyle: 1 });
+    ma20Series.setData(ma20Data);
+  }
+  if (state.indicators.ma50) {
+    const ma50Series = state.charts.price.addLineSeries({ color: c.ma50, lineWidth: 1, lineStyle: 2 });
+    ma50Series.setData(ma50Data);
+  }
   if (state.indicators.bb) {
-    priceSets.push({
-      label: 'BB Upper', data: bb.map(b => b.upper), borderColor: c.bbBorder,
-      borderWidth: 0.8, borderDash: [2, 3], pointRadius: 0,
-      fill: '+1', backgroundColor: c.bbFill, tension: 0.35, order: 1,
-    });
-    priceSets.push({
-      label: 'BB Lower', data: bb.map(b => b.lower), borderColor: c.bbBorder,
-      borderWidth: 0.8, borderDash: [2, 3], pointRadius: 0, fill: false, tension: 0.35, order: 1,
-    });
+    const upperSeries = state.charts.price.addLineSeries({ color: c.bbBorder, lineWidth: 1, lineStyle: 2 });
+    upperSeries.setData(bbUpperData);
+    const lowerSeries = state.charts.price.addLineSeries({ color: c.bbBorder, lineWidth: 1, lineStyle: 2 });
+    lowerSeries.setData(bbLowerData);
   }
 
-  // S/R Annotations
-  let annotations = {};
+  // S/R annotations as price lines
   if (state.indicators.sr) {
     const { pivots } = getSRLevels(prices);
     const srLevels = [
-      { key: 'r3', val: pivots.r3, label: 'R3', color: 'rgba(248,113,113,0.7)' },
-      { key: 'r2', val: pivots.r2, label: 'R2', color: 'rgba(248,113,113,0.55)' },
-      { key: 'r1', val: pivots.r1, label: 'R1', color: 'rgba(248,113,113,0.4)' },
-      { key: 'pp', val: pivots.pp, label: 'PP', color: 'rgba(129,140,248,0.6)' },
-      { key: 's1', val: pivots.s1, label: 'S1', color: 'rgba(52,211,153,0.4)' },
-      { key: 's2', val: pivots.s2, label: 'S2', color: 'rgba(52,211,153,0.55)' },
-      { key: 's3', val: pivots.s3, label: 'S3', color: 'rgba(52,211,153,0.7)' },
+      { val: pivots.r3, label: 'R3', color: '#f87171' },
+      { val: pivots.r2, label: 'R2', color: '#f87171' },
+      { val: pivots.r1, label: 'R1', color: '#f87171' },
+      { val: pivots.pp, label: 'PP', color: '#818cf8' },
+      { val: pivots.s1, label: 'S1', color: '#34d399' },
+      { val: pivots.s2, label: 'S2', color: '#34d399' },
+      { val: pivots.s3, label: 'S3', color: '#34d399' },
     ];
-
     srLevels.forEach(sr => {
-      annotations[sr.key] = {
-        type: 'line',
-        yMin: sr.val,
-        yMax: sr.val,
-        borderColor: sr.color,
-        borderWidth: 1.5,
-        borderDash: [6, 4],
-        label: {
-          display: true,
-          content: `${sr.label}: ${sr.val.toFixed(0)}`,
-          position: 'end',
-          backgroundColor: sr.color,
-          color: '#fff',
-          font: { size: 10, weight: '600', family: "'Inter', sans-serif" },
-          padding: { top: 2, bottom: 2, left: 6, right: 6 },
-          borderRadius: 4,
-        },
-      };
-    });
-  }
-
-  const priceCtx = document.getElementById('priceChart');
-  if (priceCtx) {
-    state.charts.price = new Chart(priceCtx, {
-      type: 'line',
-      data: { labels, datasets: priceSets },
-      options: {
-        ...baseOpts,
-        plugins: {
-          ...baseOpts.plugins,
-          annotation: { annotations },
-        },
-      },
-    });
-  }
-
   // ── RSI Chart ─────────────────────────────────────
   const rsiCtx = document.getElementById('rsiChart');
   if (rsiCtx) {
@@ -1457,97 +1386,70 @@ async function loadPicks() {
 
 // ── Macro Correlation ──────────────────────────────────────
 async function loadMacroCorrelation() {
-  const canvas = document.getElementById("macroChart");
-  if (!canvas) return; // Not on overview page
+  const container = document.getElementById("macroChart");
+  if (!container) return; // Not on overview page
   
   try {
     const res = await fetch(`${API_BASE}/macro/usd-ihsg`);
     if (!res.ok) throw new Error("Failed to load macro data");
     const data = await res.json();
     
-    document.getElementById("macroSkeleton").style.display = "none";
+    const skel = document.getElementById("macroSkeleton");
+    if (skel) skel.style.display = "none";
     
     const badge = document.getElementById("macroBadge");
-    badge.style.display = "block";
-    let corrText = "";
-    if (data.correlation > 0.5) { corrText = "Strong Positive"; badge.style.color = "var(--color-green)"; }
-    else if (data.correlation < -0.5) { corrText = "Strong Inverse"; badge.style.color = "var(--color-red)"; }
-    else { corrText = "Weak Correlation"; badge.style.color = "var(--color-text-2)"; }
-    badge.innerText = `Corr: ${data.correlation.toFixed(2)} (${corrText})`;
+    if (badge) {
+      badge.style.display = "block";
+      let corrText = "";
+      if (data.correlation > 0.5) { corrText = "Strong Positive"; badge.style.color = "var(--color-green)"; }
+      else if (data.correlation < -0.5) { corrText = "Strong Inverse"; badge.style.color = "var(--color-red)"; }
+      else { corrText = "Weak Correlation"; badge.style.color = "var(--color-text-2)"; }
+      badge.innerText = `Corr: ${data.correlation.toFixed(2)} (${corrText})`;
+    }
     
-    const ctx = canvas.getContext("2d");
     const isDark = state.theme === "dark";
     const gridColor = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.05)";
     const tickColor = isDark ? "#666" : "#888";
     
     if (state.charts.macro) {
-      state.charts.macro.destroy();
+      state.charts.macro.remove();
+      state.charts.macro = null;
     }
     
-    state.charts.macro = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: data.dates,
-        datasets: [
-          {
-            label: "IHSG (^JKSE)",
-            data: data.ihsg,
-            borderColor: isDark ? "#CFF008" : "#8a9f00",
-            backgroundColor: "transparent",
-            borderWidth: 2,
-            pointRadius: 0,
-            yAxisID: "y"
-          },
-          {
-            label: "USD/IDR",
-            data: data.idr,
-            borderColor: "#3b82f6",
-            backgroundColor: "transparent",
-            borderWidth: 2,
-            pointRadius: 0,
-            yAxisID: "y1"
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: "index", intersect: false },
-        plugins: {
-          legend: { display: true, labels: { color: tickColor } },
-          tooltip: {
-            backgroundColor: isDark ? "#262626" : "#fff",
-            titleColor: isDark ? "#fff" : "#131313",
-            bodyColor: isDark ? "#fff" : "#131313",
-            borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
-            borderWidth: 1
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: gridColor },
-            ticks: { color: tickColor, maxTicksLimit: 8 }
-          },
-          y: {
-            type: "linear",
-            display: true,
-            position: "left",
-            grid: { color: gridColor },
-            ticks: { color: tickColor }
-          },
-          y1: {
-            type: "linear",
-            display: true,
-            position: "right",
-            grid: { drawOnChartArea: false },
-            ticks: { color: tickColor }
-          }
-        }
-      }
+    state.charts.macro = LightweightCharts.createChart(container, {
+      layout: { background: { type: 'solid', color: 'transparent' }, textColor: tickColor },
+      grid: { vertLines: { color: gridColor }, horzLines: { color: gridColor } },
+      timeScale: { timeVisible: false, borderVisible: false, fixLeftEdge: true, fixRightEdge: true },
+      leftPriceScale: { visible: true, borderVisible: false },
+      rightPriceScale: { visible: true, borderVisible: false },
+      crosshair: { mode: 0 },
+      handleScroll: { mouseWheel: true, pressedMouseMove: true },
+      handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
     });
+
+    const ihsgSeries = state.charts.macro.addLineSeries({
+      color: isDark ? "#CFF008" : "#8a9f00",
+      lineWidth: 2,
+      priceScaleId: 'right'
+    });
+    
+    const usdSeries = state.charts.macro.addLineSeries({
+      color: "#3b82f6",
+      lineWidth: 2,
+      priceScaleId: 'left'
+    });
+
+    const ihsgData = data.dates.map((d, i) => ({ time: d, value: data.ihsg[i] })).filter(d => d.value !== null);
+    const usdData = data.dates.map((d, i) => ({ time: d, value: data.idr[i] })).filter(d => d.value !== null);
+
+    ihsgSeries.setData(ihsgData);
+    usdSeries.setData(usdData);
+    state.charts.macro.timeScale().fitContent();
+
   } catch (err) {
     console.error(err);
-    document.getElementById("macroSkeleton").style.display = "none";
+    const skel = document.getElementById("macroSkeleton");
+    if (skel) skel.style.display = "none";
     const badge = document.getElementById("macroBadge");
     if (badge) {
       badge.style.display = "block";
