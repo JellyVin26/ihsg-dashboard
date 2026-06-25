@@ -586,51 +586,52 @@ function getChartColors() {
 }
 
 function buildCharts(prices, labels) {
-  const c = getChartColors();
-  
-  if (state.charts.price) { state.charts.price.remove(); state.charts.price = null; }
-  if (state.charts.rsi) { state.charts.rsi.remove(); state.charts.rsi = null; }
-  if (state.charts.macd) { state.charts.macd.remove(); state.charts.macd = null; }
+  try {
+    const c = getChartColors();
+    
+    if (state.charts.price) { state.charts.price.remove(); state.charts.price = null; }
+    if (state.charts.rsi) { state.charts.rsi.remove(); state.charts.rsi = null; }
+    if (state.charts.macd) { state.charts.macd.remove(); state.charts.macd = null; }
 
-  const priceContainer = document.getElementById('priceChart');
-  const rsiContainer = document.getElementById('rsiChart');
-  const macdContainer = document.getElementById('macdChart');
+    const priceContainer = document.getElementById('priceChart');
+    const rsiContainer = document.getElementById('rsiChart');
+    const macdContainer = document.getElementById('macdChart');
 
-  if (!priceContainer || !rsiContainer || !macdContainer) return;
+    if (!priceContainer || !rsiContainer || !macdContainer) return;
 
-  const chartOpts = {
-    layout: { background: { type: 'solid', color: 'transparent' }, textColor: c.tick },
-    grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
-    timeScale: { timeVisible: false, borderVisible: false, fixLeftEdge: true, fixRightEdge: true },
-    rightPriceScale: { borderVisible: false },
-    crosshair: { mode: 0 },
-    handleScroll: { mouseWheel: true, pressedMouseMove: true },
-    handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
-  };
+    const chartOpts = {
+      layout: { background: { type: 'solid', color: 'transparent' }, textColor: c.tick },
+      grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
+      timeScale: { timeVisible: false, borderVisible: false, fixLeftEdge: true, fixRightEdge: true },
+      rightPriceScale: { borderVisible: false },
+      crosshair: { mode: 0 },
+      handleScroll: { mouseWheel: true, pressedMouseMove: true },
+      handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
+    };
 
-  // Build data arrays
-  const lineData = prices.map((p, i) => ({ time: labels[i], value: p }));
-  const ma20v = sma(prices, 20);
-  const ma50v = sma(prices, 50);
-  const bb = bollingerBands(prices);
-  const rsiV = rsi(prices);
-  const { macdLine, signalLine, histogram } = macd(prices);
+    // Build data arrays
+    const lineData = prices.map((p, i) => ({ time: labels[i], value: p }));
+    const ma20v = sma(prices, 20);
+    const ma50v = sma(prices, 50);
+    const bb = bollingerBands(prices);
+    const rsiV = rsi(prices);
+    const { macdLine, signalLine, histogram } = macd(prices);
 
-  const ma20Data = ma20v.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
-  const ma50Data = ma50v.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
-  const bbUpperData = bb.map((b, i) => b.upper !== null ? { time: labels[i], value: b.upper } : null).filter(Boolean);
-  const bbLowerData = bb.map((b, i) => b.lower !== null ? { time: labels[i], value: b.lower } : null).filter(Boolean);
+    const ma20Data = ma20v.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
+    const ma50Data = ma50v.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
+    const bbUpperData = bb.map((b, i) => b.upper !== null ? { time: labels[i], value: b.upper } : null).filter(Boolean);
+    const bbLowerData = bb.map((b, i) => b.lower !== null ? { time: labels[i], value: b.lower } : null).filter(Boolean);
 
-  // Price Chart
-  state.charts.price = LightweightCharts.createChart(priceContainer, chartOpts);
-  const priceSeries = state.charts.price.addAreaSeries({
-    lineColor: c.price,
-    topColor: c.priceFill.replace('0.1)', '0.3)'),
-    bottomColor: 'transparent',
-    lineWidth: 2,
-    priceFormat: { type: 'price', precision: 0, minMove: 1 }
-  });
-  priceSeries.setData(lineData);
+    // Price Chart
+    state.charts.price = LightweightCharts.createChart(priceContainer, chartOpts);
+    const priceSeries = state.charts.price.addAreaSeries({
+      lineColor: c.price,
+      topColor: c.priceFill.replace('0.1)', '0.3)'),
+      bottomColor: 'transparent',
+      lineWidth: 2,
+      priceFormat: { type: 'price', precision: 0, minMove: 1 }
+    });
+    priceSeries.setData(lineData);
 
   if (state.indicators.ma20) {
     const ma20Series = state.charts.price.addLineSeries({ color: c.ma20, lineWidth: 1, lineStyle: 1 });
@@ -695,6 +696,13 @@ function buildCharts(prices, labels) {
   const signalS = state.charts.macd.addLineSeries({ color: c.macdSignal, lineWidth: 1 });
   signalS.setData(signalData);
   state.charts.macd.timeScale().fitContent();
+  } catch (err) {
+    console.error("buildCharts error:", err);
+    const priceContainer = document.getElementById('priceChart');
+    if (priceContainer) {
+      priceContainer.innerHTML = `<div style="color:var(--color-red); padding: 20px;">Chart Error: ${err.message}</div>`;
+    }
+  }
 }
 
 // ── Multi-Stock Comparison ─────────────────────────────────
