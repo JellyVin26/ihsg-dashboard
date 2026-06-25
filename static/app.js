@@ -660,76 +660,41 @@ function buildCharts(prices, labels) {
       { val: pivots.s3, label: 'S3', color: '#34d399' },
     ];
     srLevels.forEach(sr => {
-  // ── RSI Chart ─────────────────────────────────────
-  const rsiCtx = document.getElementById('rsiChart');
-  if (rsiCtx) {
-    const rsiAnnotations = {
-      overbought: {
-        type: 'line', yMin: 70, yMax: 70,
-        borderColor: 'rgba(248,113,113,0.3)', borderWidth: 1, borderDash: [4, 4],
-      },
-      oversold: {
-        type: 'line', yMin: 30, yMax: 30,
-        borderColor: 'rgba(52,211,153,0.3)', borderWidth: 1, borderDash: [4, 4],
-      },
-    };
-
-    state.charts.rsi = new Chart(rsiCtx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'RSI', data: rsiV, borderColor: c.rsi,
-          borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 3,
-          fill: false, tension: 0.35,
-        }],
-      },
-      options: {
-        ...baseOpts,
-        scales: {
-          x: { ...baseOpts.scales.x, ticks: { ...baseOpts.scales.x.ticks, maxTicksLimit: 6 } },
-          y: { ...baseOpts.scales.y, min: 0, max: 100 },
-        },
-        plugins: {
-          ...baseOpts.plugins,
-          annotation: { annotations: rsiAnnotations },
-        },
-      },
+      priceSeries.createPriceLine({
+        price: sr.val,
+        color: sr.color,
+        lineWidth: 1,
+        lineStyle: 2,
+        axisLabelVisible: true,
+        title: sr.label,
+      });
     });
   }
 
-  // ── MACD Chart ────────────────────────────────────
-  const macdCtx = document.getElementById('macdChart');
-  if (macdCtx) {
-    state.charts.macd = new Chart(macdCtx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            type: 'line', label: 'MACD', data: macdLine, borderColor: c.macdLine,
-            borderWidth: 1.8, pointRadius: 0, fill: false, tension: 0.35, order: 1,
-          },
-          {
-            type: 'line', label: 'Signal', data: signalLine, borderColor: c.macdSignal,
-            borderWidth: 1.2, borderDash: [4, 3], pointRadius: 0, fill: false, tension: 0.35, order: 1,
-          },
-          {
-            label: 'Histogram', data: histogram,
-            backgroundColor: histogram.map(v => v >= 0 ? c.histUp : c.histDown),
-            borderWidth: 0, borderRadius: 2, order: 2,
-          },
-        ],
-      },
-      options: {
-        ...baseOpts,
-        scales: {
-          x: { ...baseOpts.scales.x, ticks: { ...baseOpts.scales.x.ticks, maxTicksLimit: 6 } },
-          y: baseOpts.scales.y,
-        },
-      },
-    });
-  }
+  state.charts.price.timeScale().fitContent();
+
+  // RSI Chart
+  state.charts.rsi = LightweightCharts.createChart(rsiContainer, chartOpts);
+  const rsiSeries = state.charts.rsi.addLineSeries({ color: c.rsi, lineWidth: 2 });
+  const rsiData = rsiV.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
+  rsiSeries.setData(rsiData);
+  rsiSeries.createPriceLine({ price: 70, color: '#f87171', lineWidth: 1, lineStyle: 2, title: 'OB' });
+  rsiSeries.createPriceLine({ price: 30, color: '#34d399', lineWidth: 1, lineStyle: 2, title: 'OS' });
+  state.charts.rsi.timeScale().fitContent();
+
+  // MACD Chart
+  state.charts.macd = LightweightCharts.createChart(macdContainer, chartOpts);
+  const macdData = macdLine.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
+  const signalData = signalLine.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
+  const histData = histogram.map((p, i) => p !== null ? { time: labels[i], value: p, color: p >= 0 ? c.histUp : c.histDown } : null).filter(Boolean);
+
+  const histSeries = state.charts.macd.addHistogramSeries();
+  histSeries.setData(histData);
+  const macdS = state.charts.macd.addLineSeries({ color: c.macdLine, lineWidth: 2 });
+  macdS.setData(macdData);
+  const signalS = state.charts.macd.addLineSeries({ color: c.macdSignal, lineWidth: 1 });
+  signalS.setData(signalData);
+  state.charts.macd.timeScale().fitContent();
 }
 
 // ── Multi-Stock Comparison ─────────────────────────────────
