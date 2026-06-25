@@ -193,14 +193,18 @@ def get_prices(ticker: str, period: str = "3M"):
         print("ML Error:", e)
 
     # --- 3. Slice the data to the user's requested period for the chart ---
-    # 1M=30, 3M=90, 6M=180, 1Y=365 calendar days roughly (trading days are fewer)
+    # Send enough data for frontend indicators (max 500 days)
+    # But pass the requested visible trading_days to the frontend so it zooms in
     period_mapping_days = {"1M": 22, "3M": 65, "6M": 130, "1Y": 252}
     trading_days = period_mapping_days.get(period, 65)
     
-    sliced_df = df.tail(trading_days)
+    chart_df = df.tail(500)
     
-    close  = sliced_df["Close"].dropna()
-    volume = sliced_df["Volume"].fillna(0)
+    # Drop duplicates just in case yfinance has index duplicates
+    chart_df = chart_df[~chart_df.index.duplicated(keep='last')]
+    
+    close  = chart_df["Close"].dropna()
+    volume = chart_df["Volume"].fillna(0)
 
     prices = [safe_float(v) for v in close.values]
     dates  = [d.strftime("%Y-%m-%d") for d in close.index]
@@ -227,6 +231,7 @@ def get_prices(ticker: str, period: str = "3M"):
         "ml_confidence": ml_confidence,
         "ml_accuracy_7d": ml_accuracy_7d,
         "fetched_at":   datetime.utcnow().isoformat() + "Z",
+        "visible_days": trading_days,
     }
 
 

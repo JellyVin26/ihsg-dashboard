@@ -695,7 +695,18 @@ function buildCharts(prices, labels) {
   macdS.setData(macdData);
   const signalS = state.charts.macd.addLineSeries({ color: c.macdSignal, lineWidth: 1 });
   signalS.setData(signalData);
-  state.charts.macd.timeScale().fitContent();
+
+  if (state.visibleDays && lineData.length > 0) {
+    const fromIndex = Math.max(0, lineData.length - state.visibleDays);
+    const toIndex = lineData.length - 1;
+    state.charts.price.timeScale().setVisibleLogicalRange({ from: fromIndex, to: toIndex });
+    state.charts.rsi.timeScale().setVisibleLogicalRange({ from: fromIndex, to: toIndex });
+    state.charts.macd.timeScale().setVisibleLogicalRange({ from: fromIndex, to: toIndex });
+  } else {
+    state.charts.price.timeScale().fitContent();
+    state.charts.rsi.timeScale().fitContent();
+    state.charts.macd.timeScale().fitContent();
+  }
   } catch (err) {
     console.error("buildCharts error:", err);
     const priceContainer = document.getElementById('priceChart');
