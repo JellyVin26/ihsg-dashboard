@@ -356,6 +356,19 @@ function renderMLPrediction(data) {
   }, 100);
   
   textEl.textContent = `${conf.toFixed(1)}% Confidence`;
+
+  const accEl = document.getElementById('mlAccuracy');
+  if (accEl) {
+    const acc = data.ml_accuracy_7d;
+    if (acc !== undefined && acc !== null) {
+      const color = acc >= 70 ? 'var(--color-green)' : acc >= 50 ? 'var(--color-accent)' : 'var(--color-red)';
+      accEl.innerHTML = `${acc}% <span style="font-size: 14px; font-weight: 500; color: ${color};">win rate</span>`;
+      accEl.style.color = color;
+    } else {
+      accEl.innerHTML = `— <span style="font-size: 14px; font-weight: 500; color: var(--color-text-dim);">win rate</span>`;
+      accEl.style.color = 'var(--color-text)';
+    }
+  }
 }
 
 // ── Render: Metrics ────────────────────────────────────────

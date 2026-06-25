@@ -142,6 +142,7 @@ def get_prices(ticker: str, period: str = "3M"):
     # --- 2. Train ML Trend Predictor (Next Day) ---
     ml_prediction = "Unknown"
     ml_confidence = 0
+    ml_accuracy_7d = None
     try:
         if len(df) > 100:
             # Feature Engineering
@@ -180,6 +181,14 @@ def get_prices(ticker: str, period: str = "3M"):
                 
                 ml_prediction = "UP" if pred == 1 else "DOWN"
                 ml_confidence = round(max(proba) * 100, 1)
+
+                # Past 7 days accuracy
+                ml_accuracy_7d = None
+                if len(X_train) >= 7:
+                    recent_preds = rf.predict(X_train.iloc[-7:])
+                    recent_actuals = y_train.iloc[-7:].values
+                    correct = sum(recent_preds == recent_actuals)
+                    ml_accuracy_7d = round(correct / 7 * 100)
     except Exception as e:
         print("ML Error:", e)
 
@@ -216,6 +225,7 @@ def get_prices(ticker: str, period: str = "3M"):
         "ann_vol":      round(ann_vol, 2) if ann_vol else None,
         "ml_prediction": ml_prediction,
         "ml_confidence": ml_confidence,
+        "ml_accuracy_7d": ml_accuracy_7d,
         "fetched_at":   datetime.utcnow().isoformat() + "Z",
     }
 
