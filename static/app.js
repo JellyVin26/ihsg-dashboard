@@ -646,14 +646,14 @@ function buildCharts(prices, labels) {
     const histDisplayData = sliceData(histData);
 
     // Dynamic Color Logic based on Price Trend
-    let dynamicLineColor = '#60a5fa';
-    let dynamicTopColor = 'rgba(96, 165, 250, 0.3)';
+    let dynamicLineColor = '#CFF008'; // Default Yellow
+    let dynamicTopColor = 'rgba(207, 240, 8, 0.3)';
     if (state.priceTrend === 'up') {
       dynamicLineColor = '#34d399'; // Green
       dynamicTopColor = 'rgba(52, 211, 153, 0.3)';
     } else if (state.priceTrend === 'down') {
-      dynamicLineColor = '#f87171'; // Red
-      dynamicTopColor = 'rgba(248, 113, 113, 0.3)';
+      dynamicLineColor = '#ef4444'; // Red
+      dynamicTopColor = 'rgba(239, 68, 68, 0.3)';
     }
 
     // Price Chart
