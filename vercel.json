@@ -1,4 +1,5 @@
 {
   "buildCommand": "echo \"No build required\"",
-  "installCommand": "echo \"No install required\""
+  "installCommand": "echo \"No install required\"",
+  "outputDirectory": "static"
 }
