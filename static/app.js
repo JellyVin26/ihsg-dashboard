@@ -637,22 +637,27 @@ function buildCharts(prices, labels) {
       handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
     };
 
+    // Shift timestamps by the browser's local timezone offset so Lightweight Charts 
+    // (which renders UNIX timestamps as UTC) will display them in the user's local time.
+    const tzOffsetSeconds = new Date().getTimezoneOffset() * 60;
+    const adjustTime = t => typeof t === 'number' ? t - tzOffsetSeconds : t;
+
     // Build data arrays
-    const lineData = prices.map((p, i) => ({ time: labels[i], value: p }));
+    const lineData = prices.map((p, i) => ({ time: adjustTime(labels[i]), value: p }));
     const ma20v = sma(prices, 20);
     const ma50v = sma(prices, 50);
     const bb = bollingerBands(prices);
     const rsiV = rsi(prices);
     const { macdLine, signalLine, histogram } = macd(prices);
 
-    const ma20Data = ma20v.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
-    const ma50Data = ma50v.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
-    const bbUpperData = bb.map((b, i) => b.upper !== null ? { time: labels[i], value: b.upper } : null).filter(Boolean);
-    const bbLowerData = bb.map((b, i) => b.lower !== null ? { time: labels[i], value: b.lower } : null).filter(Boolean);
-    const rsiData = rsiV.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
-    const macdData = macdLine.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
-    const signalData = signalLine.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
-    const histData = histogram.map((p, i) => p !== null ? { time: labels[i], value: p, color: p >= 0 ? c.histUp : c.histDown } : null).filter(Boolean);
+    const ma20Data = ma20v.map((p, i) => p !== null ? { time: adjustTime(labels[i]), value: p } : null).filter(Boolean);
+    const ma50Data = ma50v.map((p, i) => p !== null ? { time: adjustTime(labels[i]), value: p } : null).filter(Boolean);
+    const bbUpperData = bb.map((b, i) => b.upper !== null ? { time: adjustTime(labels[i]), value: b.upper } : null).filter(Boolean);
+    const bbLowerData = bb.map((b, i) => b.lower !== null ? { time: adjustTime(labels[i]), value: b.lower } : null).filter(Boolean);
+    const rsiData = rsiV.map((p, i) => p !== null ? { time: adjustTime(labels[i]), value: p } : null).filter(Boolean);
+    const macdData = macdLine.map((p, i) => p !== null ? { time: adjustTime(labels[i]), value: p } : null).filter(Boolean);
+    const signalData = signalLine.map((p, i) => p !== null ? { time: adjustTime(labels[i]), value: p } : null).filter(Boolean);
+    const histData = histogram.map((p, i) => p !== null ? { time: adjustTime(labels[i]), value: p, color: p >= 0 ? c.histUp : c.histDown } : null).filter(Boolean);
 
     // Slice data to visibleDays so the chart perfectly fits the requested period
     let displayLength = lineData.length;
