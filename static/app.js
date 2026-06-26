@@ -1156,9 +1156,10 @@ function renderAnalystVerdict(data) {
 
 // ── News Sentiment ─────────────────────────────────────────
 
-async function loadNews() {
+async function loadNews(ticker = null) {
   try {
-    const resp = await fetch(`${API_BASE}/news`);
+    const url = ticker ? `${API_BASE}/news?ticker=${ticker}` : `${API_BASE}/news`;
+    const resp = await fetch(url);
     if (!resp.ok) throw new Error('News API failed');
     const data = await resp.json();
     renderNewsFeed(data);
