@@ -101,30 +101,47 @@ def get_prices(ticker: str, period: str = "3M"):
     symbol = yahoo_symbol(ticker)
 
     try:
-        # Always fetch 5 years of data to have enough history for ML training and Risk
-        hist = yf.download(
+        # Always fetch 5 years of daily data for ML training and Risk
+        hist_daily = yf.download(
             symbol,
             period="5y",
             interval="1d",
             progress=False,
             auto_adjust=True,
         )
+        
+        # Fetch actual requested interval/period for the chart
+        if yf_period == "5y" and yf_interval == "1d":
+            hist_chart = hist_daily.copy()
+        else:
+            hist_chart = yf.download(
+                symbol,
+                period=yf_period,
+                interval=yf_interval,
+                progress=False,
+                auto_adjust=True,
+            )
+            if hist_chart.empty:
+                hist_chart = hist_daily.copy()
     except Exception as e:
         raise HTTPException(502, f"Yahoo Finance error: {e}")
 
-    if hist.empty:
+    if hist_daily.empty:
         raise HTTPException(404, f"No data found for '{ticker}' (tried '{symbol}'). "
                                   "Check that it's a valid IDX ticker.")
 
     # Handle multi-level columns from newer yfinance versions
-    if isinstance(hist.columns, pd.MultiIndex):
-        hist.columns = hist.columns.droplevel(1)
+    if isinstance(hist_daily.columns, pd.MultiIndex):
+        hist_daily.columns = hist_daily.columns.droplevel(1)
+    if isinstance(hist_chart.columns, pd.MultiIndex):
+        hist_chart.columns = hist_chart.columns.droplevel(1)
 
-    df = hist.copy()
+    df_daily = hist_daily.copy()
+    df_chart = hist_chart.copy()
     
     # --- 1. Compute Risk Level (Annualized Volatility & Drawdown over last 1 year) ---
     # ~252 trading days in a year
-    df_1y = df.tail(252).copy()
+    df_1y = df_daily.tail(252).copy()
     if len(df_1y) > 10:
         returns_1y = df_1y["Close"].pct_change().dropna()
         daily_vol = returns_1y.std()
@@ -147,9 +164,9 @@ def get_prices(ticker: str, period: str = "3M"):
     ml_confidence = 0
     ml_accuracy_7d = None
     try:
-        if len(df) > 100:
+        if len(df_daily) > 100:
             # Feature Engineering
-            df_ml = df.copy()
+            df_ml = df_daily.copy()
             df_ml['Ret_1d'] = df_ml['Close'].pct_change(1)
             df_ml['Ret_3d'] = df_ml['Close'].pct_change(3)
             df_ml['Ret_5d'] = df_ml['Close'].pct_change(5)
@@ -209,7 +226,7 @@ def get_prices(ticker: str, period: str = "3M"):
     }
     trading_days = period_mapping_points.get(period, 65)
     
-    chart_df = df.tail(500)
+    chart_df = df_chart.tail(500)
     
     # Drop duplicates just in case yfinance has index duplicates
     chart_df = chart_df[~chart_df.index.duplicated(keep='last')]
