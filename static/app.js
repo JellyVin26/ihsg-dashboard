@@ -622,6 +622,28 @@ function buildCharts(prices, labels) {
     const ma50Data = ma50v.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
     const bbUpperData = bb.map((b, i) => b.upper !== null ? { time: labels[i], value: b.upper } : null).filter(Boolean);
     const bbLowerData = bb.map((b, i) => b.lower !== null ? { time: labels[i], value: b.lower } : null).filter(Boolean);
+    const rsiData = rsiV.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
+    const macdData = macdLine.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
+    const signalData = signalLine.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
+    const histData = histogram.map((p, i) => p !== null ? { time: labels[i], value: p, color: p >= 0 ? c.histUp : c.histDown } : null).filter(Boolean);
+
+    // Slice data to visibleDays so the chart perfectly fits the requested period
+    let displayLength = lineData.length;
+    if (state.visibleDays && lineData.length > state.visibleDays) {
+      displayLength = state.visibleDays;
+    }
+    
+    const sliceData = arr => arr.slice(-displayLength);
+
+    const priceDisplayData = sliceData(lineData);
+    const ma20DisplayData = sliceData(ma20Data);
+    const ma50DisplayData = sliceData(ma50Data);
+    const bbUpperDisplayData = sliceData(bbUpperData);
+    const bbLowerDisplayData = sliceData(bbLowerData);
+    const rsiDisplayData = sliceData(rsiData);
+    const macdDisplayData = sliceData(macdData);
+    const signalDisplayData = sliceData(signalData);
+    const histDisplayData = sliceData(histData);
 
     // Price Chart
     state.charts.price = LightweightCharts.createChart(priceContainer, chartOpts);
@@ -632,21 +654,21 @@ function buildCharts(prices, labels) {
       lineWidth: 2,
       priceFormat: { type: 'price', precision: 0, minMove: 1 }
     });
-    priceSeries.setData(lineData);
+    priceSeries.setData(priceDisplayData);
 
   if (state.indicators.ma20) {
     const ma20Series = state.charts.price.addLineSeries({ color: c.ma20, lineWidth: 1, lineStyle: 1 });
-    ma20Series.setData(ma20Data);
+    ma20Series.setData(ma20DisplayData);
   }
   if (state.indicators.ma50) {
     const ma50Series = state.charts.price.addLineSeries({ color: c.ma50, lineWidth: 1, lineStyle: 2 });
-    ma50Series.setData(ma50Data);
+    ma50Series.setData(ma50DisplayData);
   }
   if (state.indicators.bb) {
     const upperSeries = state.charts.price.addLineSeries({ color: c.bbBorder, lineWidth: 1, lineStyle: 2 });
-    upperSeries.setData(bbUpperData);
+    upperSeries.setData(bbUpperDisplayData);
     const lowerSeries = state.charts.price.addLineSeries({ color: c.bbBorder, lineWidth: 1, lineStyle: 2 });
-    lowerSeries.setData(bbLowerData);
+    lowerSeries.setData(bbLowerDisplayData);
   }
 
   // S/R annotations as price lines
@@ -678,36 +700,20 @@ function buildCharts(prices, labels) {
   // RSI Chart
   state.charts.rsi = LightweightCharts.createChart(rsiContainer, chartOpts);
   const rsiSeries = state.charts.rsi.addLineSeries({ color: c.rsi, lineWidth: 2 });
-  const rsiData = rsiV.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
-  rsiSeries.setData(rsiData);
+  rsiSeries.setData(rsiDisplayData);
   rsiSeries.createPriceLine({ price: 70, color: '#f87171', lineWidth: 1, lineStyle: 2, title: 'OB' });
   rsiSeries.createPriceLine({ price: 30, color: '#34d399', lineWidth: 1, lineStyle: 2, title: 'OS' });
   state.charts.rsi.timeScale().fitContent();
 
   // MACD Chart
   state.charts.macd = LightweightCharts.createChart(macdContainer, chartOpts);
-  const macdData = macdLine.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
-  const signalData = signalLine.map((p, i) => p !== null ? { time: labels[i], value: p } : null).filter(Boolean);
-  const histData = histogram.map((p, i) => p !== null ? { time: labels[i], value: p, color: p >= 0 ? c.histUp : c.histDown } : null).filter(Boolean);
-
   const histSeries = state.charts.macd.addHistogramSeries();
-  histSeries.setData(histData);
+  histSeries.setData(histDisplayData);
   const macdS = state.charts.macd.addLineSeries({ color: c.macdLine, lineWidth: 2 });
-  macdS.setData(macdData);
+  macdS.setData(macdDisplayData);
   const signalS = state.charts.macd.addLineSeries({ color: c.macdSignal, lineWidth: 1 });
-  signalS.setData(signalData);
-
-  if (state.visibleDays && lineData.length > 0) {
-    const fromIndex = Math.max(0, lineData.length - state.visibleDays);
-    const toIndex = lineData.length - 1;
-    state.charts.price.timeScale().setVisibleLogicalRange({ from: fromIndex, to: toIndex });
-    state.charts.rsi.timeScale().setVisibleLogicalRange({ from: fromIndex, to: toIndex });
-    state.charts.macd.timeScale().setVisibleLogicalRange({ from: fromIndex, to: toIndex });
-  } else {
-    state.charts.price.timeScale().fitContent();
-    state.charts.rsi.timeScale().fitContent();
-    state.charts.macd.timeScale().fitContent();
-  }
+  signalS.setData(signalDisplayData);
+  state.charts.macd.timeScale().fitContent();
   } catch (err) {
     console.error("buildCharts error:", err);
     const priceContainer = document.getElementById('priceChart');
