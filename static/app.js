@@ -17,7 +17,7 @@ const TICKER_META = {
 };
 
 const AVAILABLE_TICKERS = Object.keys(TICKER_META);
-const PERIOD_DAYS = { '1M': 30, '3M': 90, '6M': 180, '1Y': 365 };
+const PERIOD_DAYS = { '1D': 1, '1W': 5, '1M': 30, '3M': 90, '6M': 180, '1Y': 365, 'ALL': 9999 };
 
 const COMPARE_COLORS = [
   '#3b82f6', '#34d399', '#fbbf24', '#f87171',
@@ -27,7 +27,7 @@ const COMPARE_COLORS = [
 // ── State ──────────────────────────────────────────────────
 const state = {
   ticker: 'IHSG',
-  period: '3M',
+  period: '1D',
   indicators: { ma20: false, ma50: false, bb: false, sr: false },
   charts: { price: null, rsi: null, macd: null, compare: null, macro: null },
   usingLiveData: false,

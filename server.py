@@ -47,10 +47,13 @@ TICKER_MAP = {
 }
 
 PERIOD_MAP = {
+    "1D":  ("1d",   "5m"),
+    "1W":  ("5d",   "15m"),
     "1M":  ("1mo",  "1d"),
     "3M":  ("3mo",  "1d"),
     "6M":  ("6mo",  "1d"),
     "1Y":  ("1y",   "1d"),
+    "ALL": ("max",  "1d")
 }
 
 def yahoo_symbol(ticker: str) -> str:
