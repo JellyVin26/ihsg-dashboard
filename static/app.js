@@ -112,22 +112,41 @@ function seededRng(seed) {
 
 function generateDemoData(ticker, period) {
   const meta = TICKER_META[ticker] ?? { label: ticker + '.JK', base: 5000, vol: 80 };
-  const n = PERIOD_DAYS[period] + 60;
+  
+  let isIntraday = (period === '1D' || period === '1W');
+  let dataPoints = 65; // Default for 3M
+  if (period === '1D') dataPoints = 78;
+  else if (period === '1W') dataPoints = 130;
+  else if (period === '1M') dataPoints = 22;
+  else if (period === '1Y') dataPoints = 252;
+  else if (period === 'ALL') dataPoints = 1000;
+  
+  const n = dataPoints + 60;
   const seed = [...ticker].reduce((acc, c) => acc + c.charCodeAt(0) * 31, 0);
   const rand = seededRng(seed);
 
   const prices = [meta.base];
   for (let i = 1; i < n; i++) {
-    const drift = (rand() - 0.485) * meta.vol;
+    const drift = (rand() - 0.485) * meta.vol * (isIntraday ? 0.1 : 1);
     prices.push(Math.max(prices[i - 1] + drift, meta.base * 0.45));
   }
 
-  const trimmed = prices.slice(-PERIOD_DAYS[period] - 20);
+  const trimmed = prices.slice(-dataPoints - 20);
   const now = new Date();
+  
   const dates = trimmed.map((_, i) => {
-    const d = new Date(now);
-    d.setDate(d.getDate() - (trimmed.length - 1 - i));
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    if (isIntraday) {
+      const d = new Date(now);
+      const minOffset = period === '1D' ? 5 : 15;
+      d.setMinutes(d.getMinutes() - ((trimmed.length - 1 - i) * minOffset));
+      // Lightweight Charts expects UNIX timestamps in SECONDS
+      // But we adjust it to local timezone offset for accurate day transitions
+      return Math.floor(d.getTime() / 1000) - (d.getTimezoneOffset() * 60);
+    } else {
+      const d = new Date(now);
+      d.setDate(d.getDate() - (trimmed.length - 1 - i));
+      return d.toISOString().split('T')[0];
+    }
   });
 
   const last = trimmed[trimmed.length - 1];
@@ -145,6 +164,7 @@ function generateDemoData(ticker, period) {
     ann_vol: 18.5,
     ml_prediction: rand() > 0.5 ? 'UP' : 'DOWN',
     ml_confidence: 50 + rand() * 40,
+    visible_days: dataPoints,
     isDemo: true,
   };
 }
