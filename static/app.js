@@ -1200,8 +1200,7 @@ function renderNewsFeed(data) {
       }
       return `
         <a class="news-item" href="${item.link}" target="_blank" rel="noopener noreferrer">
-          <div class="news-item__thumb" style="${item.image ? `background-image: url(${item.image})` : ''}">
-             ${!item.image ? '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' : ''}
+          <div class="news-item__thumb" style="background-image: url('${item.image || `https://ui-avatars.com/api/?name=${state.ticker || 'IDX'}&background=random&color=fff&size=128&font-size=0.4&bold=true`}'); background-size: cover; background-position: center;">
           </div>
           <div class="news-item__content">
             <div class="news-item__title">${item.title}</div>
