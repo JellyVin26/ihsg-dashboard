@@ -995,6 +995,7 @@ async function loadStock(isAuto = false) {
 
   state.lastPrices = prices;
   state.lastLabels = labels;
+  state.visibleDays = data.visible_days || null;
 
   renderPriceHeader(data);
   renderMLPrediction(data);
