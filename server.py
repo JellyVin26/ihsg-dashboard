@@ -619,14 +619,22 @@ def _fetch_rss(url: str, source_name: str, max_items: int = 10) -> list:
     return items
 
 @app.get("/api/news")
-def get_news():
+def get_news(ticker: str = None):
     """
     Fetch latest Indonesian market news and score sentiment.
     Returns headlines with sentiment tags and an overall mood score.
     """
     all_items = []
-    for feed in NEWS_FEEDS:
-        all_items.extend(_fetch_rss(feed["url"], feed["name"], max_items=8))
+    
+    if ticker:
+        # Use Google News RSS for specific stock
+        query = f"{ticker}+saham+OR+idx"
+        gnews_url = f"https://news.google.com/rss/search?q={query}&hl=id&gl=ID&ceid=ID:id"
+        all_items.extend(_fetch_rss(gnews_url, "Google News", max_items=12))
+    else:
+        # General market news
+        for feed in NEWS_FEEDS:
+            all_items.extend(_fetch_rss(feed["url"], feed["name"], max_items=8))
 
     # Deduplicate by title similarity (simple)
     seen_titles = set()

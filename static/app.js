@@ -997,9 +997,10 @@ async function loadStock(isAuto = false) {
   renderSRCard(prices);
   buildCharts(prices, labels);
 
-  // Load AI Analyst Verdict (async, doesn't block UI)
+  // Load AI Analyst Verdict and News (async, doesn't block UI)
   if (!isAuto && document.getElementById('analystCard')) {
     loadAnalysis();
+    loadNews(state.ticker);
   }
 
   if (!isAuto) setLoading(false);
@@ -1448,9 +1449,8 @@ async function loadMacroCorrelation() {
 applyTheme(state.theme);
 renderCompareChips();
 loadStock();
-loadNews();
 loadPicks();
 loadMacroCorrelation();
 
 // Auto-refresh news every 5 minutes
-setInterval(loadNews, 300000);
+setInterval(() => loadNews(state.ticker), 300000);
