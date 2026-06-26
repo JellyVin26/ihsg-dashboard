@@ -721,6 +721,37 @@ function buildCharts(prices, labels) {
       priceContainer.innerHTML = `<div style="color:var(--color-red); padding: 20px;">Chart Error: ${err.message}</div>`;
     }
   }
+
+  // Use ResizeObserver to ensure charts always perfectly stretch edge-to-edge
+  // even if container width changes due to scrollbars, CSS animations, or window resize
+  if (!window.chartResizeObserver) {
+    window.chartResizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        if (width > 0) {
+          if (entry.target.id === 'priceChart' && state.charts.price) {
+            state.charts.price.applyOptions({ width });
+            state.charts.price.timeScale().fitContent();
+          } else if (entry.target.id === 'rsiChart' && state.charts.rsi) {
+            state.charts.rsi.applyOptions({ width });
+            state.charts.rsi.timeScale().fitContent();
+          } else if (entry.target.id === 'macdChart' && state.charts.macd) {
+            state.charts.macd.applyOptions({ width });
+            state.charts.macd.timeScale().fitContent();
+          }
+        }
+      }
+    });
+  }
+
+  // Observe the containers
+  window.chartResizeObserver.disconnect();
+  const pc = document.getElementById('priceChart');
+  const rc = document.getElementById('rsiChart');
+  const mc = document.getElementById('macdChart');
+  if (pc) window.chartResizeObserver.observe(pc);
+  if (rc) window.chartResizeObserver.observe(rc);
+  if (mc) window.chartResizeObserver.observe(mc);
 }
 
 // ── Multi-Stock Comparison ─────────────────────────────────
