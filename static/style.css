@@ -8,35 +8,35 @@
 /* ── Tokens — Dark Theme (default) ───────────────────────── */
 :root,
 [data-theme="dark"] {
-  --color-bg:          #131313;
-  --color-bg-subtle:   #1a1a1a;
-  --color-surface:     #1c1c1c;
-  --color-surface-solid: #1c1c1c;
-  --color-surface-2:   #262626;
-  --color-surface-hover: #2a2a2a;
-  --color-border:      rgba(255, 255, 255, 0.05);
-  --color-border-md:   rgba(255, 255, 255, 0.10);
+  --color-bg:          #0a0a0a;
+  --color-bg-subtle:   #111111;
+  --color-surface:     #161616;
+  --color-surface-solid: #161616;
+  --color-surface-2:   #1e1e1e;
+  --color-surface-hover: #222222;
+  --color-border:      rgba(255, 255, 255, 0.08);
+  --color-border-md:   rgba(255, 255, 255, 0.15);
   --color-border-focus: #CFF008;
   --color-text-1:      #FFFFFF;
-  --color-text-2:      #8F8F8F;
+  --color-text-2:      #a0a0a0;
   --color-text-3:      #666666;
-  --color-accent:      #CFF008;
-  --color-accent-dim:  rgba(207, 240, 8, 0.15);
-  --color-accent-glow: rgba(207, 240, 8, 0.25);
-  --color-green:       #CFF008;
-  --color-green-dim:   rgba(207, 240, 8, 0.12);
-  --color-red:         #ef4444;
-  --color-red-dim:     rgba(239, 68, 68, 0.12);
+  --color-accent:      #60a5fa;
+  --color-accent-dim:  rgba(96, 165, 250, 0.15);
+  --color-accent-glow: rgba(96, 165, 250, 0.25);
+  --color-green:       #34d399;
+  --color-green-dim:   rgba(52, 211, 153, 0.12);
+  --color-red:         #f87171;
+  --color-red-dim:     rgba(248, 113, 113, 0.12);
   --color-amber:       #fbbf24;
   --color-amber-dim:   rgba(251, 191, 36, 0.12);
-  --gradient-header:   linear-gradient(135deg, #131313 0%, #1a1a1a 50%, #131313 100%);
-  --gradient-accent:   linear-gradient(135deg, #CFF008, #e2f554);
+  --gradient-header:   linear-gradient(135deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%);
+  --gradient-accent:   linear-gradient(135deg, #60a5fa, #93c5fd);
   --shadow-card:       none;
   --shadow-hover:      0 8px 30px rgba(0,0,0,0.5);
-  --shadow-glow:       0 0 20px rgba(207, 240, 8, 0.2);
+  --shadow-glow:       0 0 20px rgba(96, 165, 250, 0.2);
   --glass-blur:        blur(0px);
-  --chart-grid:        rgba(255, 255, 255, 0.04);
-  --chart-tick:        #666666;
+  --chart-grid:        rgba(255, 255, 255, 0.03);
+  --chart-tick:        #888888;
   --radius-sm:  8px;
   --radius-md:  12px;
   --radius-lg:  16px;
@@ -614,9 +614,9 @@ body {
   color: var(--color-text-1);
 }
 .ctrl-btn.active {
-  background: var(--color-accent-dim);
-  color: var(--color-accent);
-  border-color: var(--color-accent);
+  background: var(--color-surface-2);
+  color: var(--color-text-1);
+  border-color: var(--color-border-md);
 }
 
 /* ── Metric Cards ────────────────────────────────────────── */
@@ -786,7 +786,12 @@ body {
 /* ── Chart Wrappers ──────────────────────────────────────── */
 .chart-wrap { position: relative; width: 100%; }
 .chart-wrap--tall  { height: 320px; }
-.chart-wrap--short { height: 170px; }
+.chart-wrap--short { 
+  height: 170px; 
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 8px;
+}
 
 /* ── Oscillator Layout ───────────────────────────────────── */
 .oscillator-grid {

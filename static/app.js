@@ -645,13 +645,26 @@ function buildCharts(prices, labels) {
     const signalDisplayData = sliceData(signalData);
     const histDisplayData = sliceData(histData);
 
+    // Dynamic Color Logic based on Price Trend
+    let dynamicLineColor = '#60a5fa';
+    let dynamicTopColor = 'rgba(96, 165, 250, 0.3)';
+    if (state.priceTrend === 'up') {
+      dynamicLineColor = '#34d399'; // Green
+      dynamicTopColor = 'rgba(52, 211, 153, 0.3)';
+    } else if (state.priceTrend === 'down') {
+      dynamicLineColor = '#f87171'; // Red
+      dynamicTopColor = 'rgba(248, 113, 113, 0.3)';
+    }
+
     // Price Chart
     state.charts.price = LightweightCharts.createChart(priceContainer, chartOpts);
+    
     const priceSeries = state.charts.price.addAreaSeries({
-      lineColor: c.price,
-      topColor: c.priceFill.replace('0.1)', '0.3)'),
+      lineColor: dynamicLineColor,
+      topColor: dynamicTopColor,
       bottomColor: 'transparent',
-      lineWidth: 2,
+      lineWidth: 3,
+      lineType: 2, // Curved line
       priceFormat: { type: 'price', precision: 0, minMove: 1 }
     });
     priceSeries.setData(priceDisplayData);
@@ -1029,6 +1042,21 @@ async function loadStock(isAuto = false) {
 
   const prices = data.prices.filter(Boolean);
   const labels = data.dates.slice(-prices.length);
+
+  // Determine price trend for dynamic chart color
+  const latestPrice = prices[prices.length - 1];
+  if (state.lastPrices && state.lastPrices.length > 0) {
+    const oldLatest = state.lastPrices[state.lastPrices.length - 1];
+    if (latestPrice > oldLatest) {
+      state.priceTrend = 'up';
+    } else if (latestPrice < oldLatest) {
+      state.priceTrend = 'down';
+    } else {
+      state.priceTrend = 'neutral';
+    }
+  } else {
+    state.priceTrend = 'neutral';
+  }
 
   state.lastPrices = prices;
   state.lastLabels = labels;
