@@ -234,7 +234,11 @@ def get_prices(ticker: str, period: str = "3M"):
     close  = chart_df["Close"].dropna()
     volume = chart_df["Volume"].fillna(0)
 
+    # Use reindex to ensure alignment with close prices
     prices = [safe_float(v) for v in close.values]
+    opens  = [safe_float(v) for v in chart_df["Open"].reindex(close.index).values]
+    highs  = [safe_float(v) for v in chart_df["High"].reindex(close.index).values]
+    lows   = [safe_float(v) for v in chart_df["Low"].reindex(close.index).values]
     
     is_intraday = yf_interval in ("1m", "2m", "5m", "15m", "30m", "60m", "90m", "1h")
     if is_intraday:
@@ -254,6 +258,9 @@ def get_prices(ticker: str, period: str = "3M"):
         "yahoo_symbol": symbol,
         "currency":     "IDR" if ticker.upper() != "IHSG" else "points",
         "prices":       prices,
+        "opens":        opens,
+        "highs":        highs,
+        "lows":         lows,
         "dates":        dates,
         "volume":       vols,
         "latest":       latest,

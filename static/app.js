@@ -38,6 +38,9 @@ const state = {
   theme: localStorage.getItem('idx-theme') || 'dark',
   lastPrices: [],
   lastLabels: [],
+  lastData: null,
+  chartType: 'line',
+  showIndicators: true,
 };
 
 // ── Theme Management ───────────────────────────────────────
@@ -149,12 +152,19 @@ function generateDemoData(ticker, period) {
     }
   });
 
+  const opens = trimmed.map((p, i) => p * (1 + (rand() - 0.5) * 0.01));
+  const highs = trimmed.map((p, i) => Math.max(p, opens[i]) * (1 + rand() * 0.005));
+  const lows = trimmed.map((p, i) => Math.min(p, opens[i]) * (1 - rand() * 0.005));
+  
   const last = trimmed[trimmed.length - 1];
   const prev = trimmed[trimmed.length - 2];
   return {
     ticker,
     yahoo_symbol: meta.label,
     prices: trimmed,
+    opens,
+    highs,
+    lows,
     dates,
     volume: trimmed.map(() => Math.floor(rand() * 1e9)),
     latest: last,
@@ -603,6 +613,8 @@ function getChartColors() {
     tooltipBg: isDark ? 'rgba(16,16,24,0.95)' : 'rgba(255,255,255,0.95)',
     tooltipText: isDark ? '#eae9e4' : '#1a1a20',
     tooltipBorder: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+    candleUp: '#34d399',
+    candleDown: '#f87171',
   };
 }
 
@@ -644,6 +656,18 @@ function buildCharts(prices, labels) {
 
     // Build data arrays
     const lineData = prices.map((p, i) => ({ time: adjustTime(labels[i]), value: p }));
+    
+    const opens = state.lastData?.opens || prices;
+    const highs = state.lastData?.highs || prices;
+    const lows = state.lastData?.lows || prices;
+    const candleData = prices.map((p, i) => ({
+      time: adjustTime(labels[i]),
+      open: opens[i],
+      high: highs[i],
+      low: lows[i],
+      close: p
+    }));
+
     const ma20v = sma(prices, 20);
     const ma50v = sma(prices, 50);
     const bb = bollingerBands(prices);
@@ -691,29 +715,45 @@ function buildCharts(prices, labels) {
     // Price Chart
     state.charts.price = LightweightCharts.createChart(priceContainer, chartOpts);
     
-    const priceSeries = state.charts.price.addAreaSeries({
-      lineColor: dynamicLineColor,
-      topColor: dynamicTopColor,
-      bottomColor: 'transparent',
-      lineWidth: 3,
-      lineType: 2, // Curved line
-      priceFormat: { type: 'price', precision: 0, minMove: 1 }
-    });
-    priceSeries.setData(priceDisplayData);
+    let priceSeries;
+    if (state.chartType === 'candle') {
+      priceSeries = state.charts.price.addCandlestickSeries({
+        upColor: c.candleUp, downColor: c.candleDown, borderVisible: false,
+        wickUpColor: c.candleUp, wickDownColor: c.candleDown,
+        priceFormat: { type: 'price', precision: 0, minMove: 1 }
+      });
+      priceSeries.setData(sliceData(candleData));
+    } else {
+      priceSeries = state.charts.price.addAreaSeries({
+        lineColor: dynamicLineColor,
+        topColor: dynamicTopColor,
+        bottomColor: 'transparent',
+        lineWidth: 3,
+        lineType: 2, // Curved line
+        priceFormat: { type: 'price', precision: 0, minMove: 1 }
+      });
+      priceSeries.setData(priceDisplayData);
+    }
+    
+    // Toggle sub-charts based on showIndicators state
+    const oscGrid = document.querySelector('.oscillator-grid');
+    if (oscGrid) oscGrid.style.display = state.showIndicators ? 'grid' : 'none';
 
-  if (state.indicators.ma20) {
-    const ma20Series = state.charts.price.addLineSeries({ color: c.ma20, lineWidth: 1, lineStyle: 1 });
-    ma20Series.setData(ma20DisplayData);
-  }
-  if (state.indicators.ma50) {
-    const ma50Series = state.charts.price.addLineSeries({ color: c.ma50, lineWidth: 1, lineStyle: 2 });
-    ma50Series.setData(ma50DisplayData);
-  }
-  if (state.indicators.bb) {
-    const upperSeries = state.charts.price.addLineSeries({ color: c.bbBorder, lineWidth: 1, lineStyle: 2 });
-    upperSeries.setData(bbUpperDisplayData);
-    const lowerSeries = state.charts.price.addLineSeries({ color: c.bbBorder, lineWidth: 1, lineStyle: 2 });
-    lowerSeries.setData(bbLowerDisplayData);
+  if (state.showIndicators) {
+    if (state.indicators.ma20) {
+      const ma20Series = state.charts.price.addLineSeries({ color: c.ma20, lineWidth: 1, lineStyle: 1 });
+      ma20Series.setData(ma20DisplayData);
+    }
+    if (state.indicators.ma50) {
+      const ma50Series = state.charts.price.addLineSeries({ color: c.ma50, lineWidth: 1, lineStyle: 2 });
+      ma50Series.setData(ma50DisplayData);
+    }
+    if (state.indicators.bb) {
+      const upperSeries = state.charts.price.addLineSeries({ color: c.bbBorder, lineWidth: 1, lineStyle: 2 });
+      upperSeries.setData(bbUpperDisplayData);
+      const lowerSeries = state.charts.price.addLineSeries({ color: c.bbBorder, lineWidth: 1, lineStyle: 2 });
+      lowerSeries.setData(bbLowerDisplayData);
+    }
   }
 
   // S/R annotations as price lines
@@ -1092,6 +1132,7 @@ async function loadStock(isAuto = false) {
 
   state.lastPrices = prices;
   state.lastLabels = labels;
+  state.lastData = data;
   state.visibleDays = data.visible_days || null;
 
   renderPriceHeader(data);
@@ -1135,6 +1176,19 @@ document.getElementById('stockSelect')?.addEventListener('change', () => {
 // Custom ticker enter
 document.getElementById('customTicker')?.addEventListener('keydown', e => {
   if (e.key === 'Enter') loadStock();
+});
+
+// Tools
+document.getElementById('btnCandles')?.addEventListener('click', (e) => {
+  state.chartType = state.chartType === 'line' ? 'candle' : 'line';
+  e.target.style.color = state.chartType === 'candle' ? 'var(--color-text-1)' : '';
+  if (state.lastPrices.length > 0) buildCharts(state.lastPrices, state.lastLabels);
+});
+
+document.getElementById('btnIndicators')?.addEventListener('click', (e) => {
+  state.showIndicators = !state.showIndicators;
+  e.target.style.color = state.showIndicators ? '' : 'var(--color-text-3)';
+  if (state.lastPrices.length > 0) buildCharts(state.lastPrices, state.lastLabels);
 });
 
 // Period buttons
