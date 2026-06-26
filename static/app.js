@@ -960,6 +960,11 @@ async function loadStock(isAuto = false) {
       const custom = customInput ? customInput.value.trim().toUpperCase() : '';
       const select = selectInput ? selectInput.value : '';
       state.ticker = custom || select;
+      
+      // If user searched a custom ticker, reset the dropdown to default
+      if (custom && selectInput) {
+        selectInput.value = '';
+      }
     }
 
     if (!state.ticker) {
