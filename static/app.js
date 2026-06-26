@@ -1500,3 +1500,14 @@ loadMacroCorrelation();
 
 // Auto-refresh news every 5 minutes
 setInterval(() => loadNews(state.ticker), 300000);
+
+
+// UI Overhaul: Page Loader
+window.addEventListener('load', () => {
+  const loader = document.getElementById('page-loader');
+  if (loader) {
+    setTimeout(() => {
+      loader.classList.add('hidden');
+    }, 400);
+  }
+});
