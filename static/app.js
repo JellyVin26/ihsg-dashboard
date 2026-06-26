@@ -139,9 +139,9 @@ function generateDemoData(ticker, period) {
       const d = new Date(now);
       const minOffset = period === '1D' ? 5 : 15;
       d.setMinutes(d.getMinutes() - ((trimmed.length - 1 - i) * minOffset));
-      // Lightweight Charts expects UNIX timestamps in SECONDS
-      // But we adjust it to local timezone offset for accurate day transitions
-      return Math.floor(d.getTime() / 1000) - (d.getTimezoneOffset() * 60);
+      // Lightweight Charts expects UNIX timestamps in SECONDS.
+      // It will automatically format it to the user's local timezone.
+      return Math.floor(d.getTime() / 1000);
     } else {
       const d = new Date(now);
       d.setDate(d.getDate() - (trimmed.length - 1 - i));
@@ -620,10 +620,17 @@ function buildCharts(prices, labels) {
 
     if (!priceContainer || !rsiContainer || !macdContainer) return;
 
+    const isIntraday = state.period === '1D' || state.period === '1W';
+    
     const chartOpts = {
       layout: { background: { type: 'solid', color: 'transparent' }, textColor: c.tick },
       grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
-      timeScale: { timeVisible: false, borderVisible: false, fixLeftEdge: true, fixRightEdge: true },
+      timeScale: { 
+        timeVisible: isIntraday, 
+        borderVisible: false, 
+        fixLeftEdge: true, 
+        fixRightEdge: true 
+      },
       rightPriceScale: { borderVisible: false },
       crosshair: { mode: 0 },
       handleScroll: { mouseWheel: true, pressedMouseMove: true },
