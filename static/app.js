@@ -40,7 +40,7 @@ const state = {
   lastLabels: [],
   lastData: null,
   chartType: 'line',
-  showIndicators: true,
+  showIndicators: false,
 };
 
 // ── Theme Management ───────────────────────────────────────
