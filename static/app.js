@@ -306,6 +306,7 @@ function renderPriceHeader(data) {
   }
 
   if (noteEl) {
+    noteEl.style.display = 'inline-flex';
     // Clear any previous ticking clock
     if (state.liveClockInterval) clearInterval(state.liveClockInterval);
 
