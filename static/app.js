@@ -998,8 +998,10 @@ async function loadStock(isAuto = false) {
   buildCharts(prices, labels);
 
   // Load AI Analyst Verdict and News (async, doesn't block UI)
-  if (!isAuto && document.getElementById('analystCard')) {
-    loadAnalysis();
+  if (!isAuto) {
+    if (document.getElementById('analystCard')) {
+      loadAnalysis();
+    }
     loadNews(state.ticker);
   }
 
