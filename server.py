@@ -197,9 +197,17 @@ def get_prices(ticker: str, period: str = "3M"):
 
     # --- 3. Slice the data to the user's requested period for the chart ---
     # Send enough data for frontend indicators (max 500 days)
-    # But pass the requested visible trading_days to the frontend so it zooms in
-    period_mapping_days = {"1M": 22, "3M": 65, "6M": 130, "1Y": 252}
-    trading_days = period_mapping_days.get(period, 65)
+    # But pass the requested visible data points to the frontend so it zooms in
+    period_mapping_points = {
+        "1D": 78,
+        "1W": 130,
+        "1M": 22,
+        "3M": 65,
+        "6M": 130,
+        "1Y": 252,
+        "ALL": 99999
+    }
+    trading_days = period_mapping_points.get(period, 65)
     
     chart_df = df.tail(500)
     
@@ -210,7 +218,13 @@ def get_prices(ticker: str, period: str = "3M"):
     volume = chart_df["Volume"].fillna(0)
 
     prices = [safe_float(v) for v in close.values]
-    dates  = [d.strftime("%Y-%m-%d") for d in close.index]
+    
+    is_intraday = yf_interval in ("1m", "2m", "5m", "15m", "30m", "60m", "90m", "1h")
+    if is_intraday:
+        dates = [int(d.timestamp()) for d in close.index]
+    else:
+        dates = [d.strftime("%Y-%m-%d") for d in close.index]
+        
     vols   = [int(v) for v in volume.reindex(close.index).fillna(0).values]
 
     latest     = prices[-1] if prices else None
