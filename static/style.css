@@ -1486,6 +1486,8 @@ body {
   letter-spacing: -0.02em;
 }
 
+.picks-header-subtitle {
+  font-size: 15px;
   color: var(--color-text-2);
   line-height: 1.5;
 }
