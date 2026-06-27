@@ -1128,12 +1128,13 @@ body {
 @media (max-width: 768px) {
   .sidebar { display: none; }
   .mobile-logo { display: flex !important; }
+  .header-nav { display: none !important; }
   .container { padding: 1rem; gap: 1rem; margin-bottom: 70px; }
   .app-header__inner { gap: 0.75rem; justify-content: space-between; }
   
   /* Bottom Navigation Bar */
-  .header-nav { 
-    display: flex !important;
+  .mobile-nav { 
+    display: flex;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -1146,20 +1147,26 @@ body {
     padding-bottom: calc(8px + env(safe-area-inset-bottom));
     justify-content: space-around;
     z-index: 1000;
-    margin: 0 !important;
   }
-  .header-nav__link {
+  .mobile-nav__link {
     font-size: 11px;
+    font-weight: 600;
     padding: 8px;
     flex: 1;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-text-3);
+    text-decoration: none;
     border-radius: var(--radius-sm);
+    transition: all var(--transition);
   }
-  .header-nav__link:hover {
-    background: transparent;
+  .mobile-nav__link:hover {
+    color: var(--color-text-2);
   }
-  .header-nav__link--active {
-    background: var(--color-surface-2);
+  .mobile-nav__link--active {
+    color: var(--color-accent);
   }
 
   .selector-row { gap: 8px; }
@@ -1567,6 +1574,33 @@ body {
   background: var(--color-surface-2);
   color: var(--color-text-1);
   border: 1px solid var(--color-border-md);
+}
+
+/* Theme Toggle */
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--color-text-2);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.theme-toggle:hover {
+  color: var(--color-text-1);
+  background: var(--color-surface-hover);
+}
+.theme-toggle__icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── Mobile Nav (Hidden on Desktop) ─────────────────────── */
+.mobile-nav {
+  display: none;
 }
 
 .pick-card-chart {
