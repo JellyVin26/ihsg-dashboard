@@ -1198,6 +1198,24 @@ body {
   .pick-metric-card {
     width: 100%;
   }
+
+  .screener-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+  .screener-filters {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    padding-right: 0;
+    padding-bottom: 24px;
+  }
+  .screener-insights {
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+    padding-left: 0;
+    padding-top: 24px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1468,10 +1486,43 @@ body {
   letter-spacing: -0.02em;
 }
 
-.picks-header-subtitle {
-  font-size: 15px;
   color: var(--color-text-2);
   line-height: 1.5;
+}
+
+/* ── Stock Screener ─────────────────────────────────────── */
+.screener-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1600px;
+  height: calc(100vh - 73px);
+  overflow: hidden;
+}
+
+.screener-filters {
+  border-right: 1px solid var(--color-border);
+  padding-right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+}
+
+.screener-results {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.screener-insights {
+  border-left: 1px solid var(--color-border);
+  padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
 }
 
 .picks-header-metrics {

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IDX Analyzer — Stock Screener</title>
+  <meta name="description" content="Advanced technical analysis dashboard for Indonesian Stock Exchange (IDX/IHSG)." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=3.0" />
+</head>
+<body data-page="screener">
+  <div class="app">
+    <!-- ── Sidebar (Hidden on Mobile) ──────────────────── -->
+    <aside class="sidebar">
+      <a href="index.html" class="sidebar__logo">
+        <div class="logo__icon-wrap">
+          <svg class="logo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <span class="logo__text">IDX Analyzer</span>
+      </a>
+      <nav class="sidebar__nav" style="margin-top: auto;">
+        <div class="pro-upsell" style="background: var(--color-surface); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
+          <p style="font-size: 12px; color: var(--color-text-2); margin-bottom: 12px;">Unlock institutional-grade features with IDX Pro.</p>
+          <button class="btn btn--sm" style="width: 100%;">Upgrade to Pro</button>
+        </div>
+      </nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <!-- ── Header ────────────────────────────────────── -->
+      <header class="app-header">
+        <div class="app-header__inner" style="justify-content: space-between;">
+          <a href="index.html" class="mobile-logo">
+            <div class="logo__icon-wrap">
+              <svg class="logo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            </div>
+            <span class="logo__text" style="font-weight: 700; color: var(--color-text-1);">IDX Analyzer</span>
+          </a>
+          <div style="font-size: 20px; font-weight: 600; color: var(--color-text-1);" class="desktop-only">Stock Screener</div>
+          <nav class="header-nav" style="margin-left: auto;">
+            <a href="index.html" class="header-nav__link">Market Overview</a>
+            <a href="search.html" class="header-nav__link">Stock Search</a>
+            <a href="screener.html" class="header-nav__link header-nav__link--active">Screener</a>
+            <a href="picks.html" class="header-nav__link">Stock Picks</a>
+          </nav>
+          <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light theme">
+            <svg id="themeIconMoon" class="theme-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg id="themeIconSun" class="theme-toggle__icon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="container screener-layout">
+        
+        <!-- ── Left: Filters ────────────────────────────── -->
+        <aside class="screener-filters">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="font-size: 14px; font-weight: 700; color: var(--color-text-1); text-transform: uppercase; letter-spacing: 0.05em;">Screener Filters</h2>
+            <button id="clearFiltersBtn" style="background: none; border: none; color: var(--color-accent); font-size: 12px; cursor: pointer;">Clear All</button>
+          </div>
+
+          <!-- Market Cap -->
+          <div class="filter-group">
+            <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--color-text-1);">Market Cap</h3>
+            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; color: var(--color-text-2); cursor: pointer;">
+              <input type="checkbox" class="filter-cb" data-filter="mcap" value="large" checked style="accent-color: var(--color-accent);" /> Large Cap (Rp 100T+)
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; color: var(--color-text-2); cursor: pointer;">
+              <input type="checkbox" class="filter-cb" data-filter="mcap" value="mid" checked style="accent-color: var(--color-accent);" /> Mid Cap (Rp 20T - 100T)
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; color: var(--color-text-2); cursor: pointer;">
+              <input type="checkbox" class="filter-cb" data-filter="mcap" value="small" checked style="accent-color: var(--color-accent);" /> Small Cap (< Rp 20T)
+            </label>
+          </div>
+
+          <!-- Valuation -->
+          <div class="filter-group">
+            <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--color-text-1);">Valuation</h3>
+            <div style="margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-3); margin-bottom: 8px;">
+                <span>P/E Ratio</span>
+                <span id="peValue">0 - 50x</span>
+              </div>
+              <input type="range" id="peFilter" min="0" max="100" value="50" style="width: 100%; accent-color: var(--color-accent);" />
+            </div>
+          </div>
+
+          <!-- Sector -->
+          <div class="filter-group">
+            <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--color-text-1);">Sector</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="sectorFilters">
+              <!-- Sector buttons injected by JS -->
+            </div>
+          </div>
+        </aside>
+
+        <!-- ── Center: Results ────────────────────────────── -->
+        <section class="screener-results">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-size: 14px; color: var(--color-text-2);"><strong style="color: var(--color-text-1); font-size: 16px;" id="matchCount">--</strong> Matches Found</div>
+            <button class="btn btn--outline btn--sm">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </button>
+          </div>
+
+          <!-- Table Header -->
+          <div style="display: grid; grid-template-columns: 40px 2fr 1fr 1.5fr 1fr; padding: 12px 16px; border-bottom: 1px solid var(--color-border); font-size: 11px; font-weight: 700; color: var(--color-text-3); text-transform: uppercase; letter-spacing: 0.05em;">
+            <div></div>
+            <div>Ticker / Name</div>
+            <div>Price</div>
+            <div>Day Change</div>
+            <div>Market Cap</div>
+          </div>
+
+          <!-- Table Body -->
+          <div id="screenerResultsBody" style="overflow-y: auto; flex: 1; padding-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="padding: 40px; text-align: center; color: var(--color-text-3);">
+              <div class="loader" style="width: 32px; height: 32px; border: 3px solid var(--color-border); border-top-color: var(--color-accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px auto;"></div>
+              Scanning IDX Universe...
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Right: Insights ────────────────────────────── -->
+        <aside class="screener-insights">
+          
+          <!-- AI Opportunity Scan -->
+          <div class="card card--glass" style="padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--color-accent-dim);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: rgba(56, 189, 248, 0.1); color: #38bdf8; display: flex; align-items: center; justify-content: center;">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              <div>
+                <h3 style="font-size: 14px; font-weight: 700; color: var(--color-text-1);">AI Opportunity Scan</h3>
+                <p style="font-size: 11px; color: var(--color-text-3);">High-Probability Correlation</p>
+              </div>
+            </div>
+            <p style="font-size: 13px; color: var(--color-text-2); font-style: italic; line-height: 1.5;">
+              "Banking and Energy sectors are showing strong accumulation. Momentum signal is strengthening across Tier-1 vendors."
+            </p>
+          </div>
+
+          <!-- Quick Compare -->
+          <div class="card" style="padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-text-2);"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+              <h3 style="font-size: 14px; font-weight: 700;">Quick Compare</h3>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;" id="compareTable">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--color-border); color: var(--color-text-3);">
+                  <th style="text-align: left; padding: 8px 0; font-weight: 500;">Metric</th>
+                  <th style="text-align: right; padding: 8px 0; font-weight: 500;" id="cmpTicker1">--</th>
+                  <th style="text-align: right; padding: 8px 0; font-weight: 500;" id="cmpTicker2">--</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                  <td style="padding: 12px 0; color: var(--color-text-2);">Price</td>
+                  <td style="text-align: right; font-family: 'JetBrains Mono';" id="cmpPrice1">--</td>
+                  <td style="text-align: right; font-family: 'JetBrains Mono';" id="cmpPrice2">--</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                  <td style="padding: 12px 0; color: var(--color-text-2);">Change</td>
+                  <td style="text-align: right; font-family: 'JetBrains Mono';" id="cmpChange1">--</td>
+                  <td style="text-align: right; font-family: 'JetBrains Mono';" id="cmpChange2">--</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                  <td style="padding: 12px 0; color: var(--color-text-2);">P/E Ratio</td>
+                  <td style="text-align: right; font-family: 'JetBrains Mono';" id="cmpPE1">--</td>
+                  <td style="text-align: right; font-family: 'JetBrains Mono';" id="cmpPE2">--</td>
+                </tr>
+              </tbody>
+            </table>
+            <p style="font-size: 11px; color: var(--color-text-3); text-align: center; margin-top: 16px;" id="cmpHelper">Select 2 stocks from the list to compare.</p>
+          </div>
+
+          <!-- Next-Day Confidence -->
+          <div class="card" style="padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+              <h3 style="font-size: 14px; font-weight: 700;">Next-Day Confidence</h3>
+              <span style="font-size: 10px; color: var(--color-text-3);">Updated live</span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 24px;">
+              <div style="position: relative; width: 80px; height: 80px; border-radius: 50%; border: 6px solid var(--color-surface-2); display: flex; align-items: center; justify-content: center; border-top-color: var(--color-border);" id="confidenceRing">
+                <div style="text-align: center;">
+                  <div style="font-size: 20px; font-weight: 800; font-family: 'JetBrains Mono';" id="confidenceVal">--%</div>
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 14px; font-weight: 600; color: var(--color-text-3); margin-bottom: 4px;" id="confidenceTrend">Select a Stock</div>
+                <div style="font-size: 11px; color: var(--color-text-3); line-height: 1.4;" id="confidenceDesc">
+                  Click a stock to view its AI trend prediction.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </aside>
+      </main>
+    </div>
+  </div>
+
+  <!-- ── Mobile Bottom Navigation ──────────────────────── -->
+  <nav class="mobile-nav">
+    <a href="index.html" class="mobile-nav__link">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      <span>Market</span>
+    </a>
+    <a href="search.html" class="mobile-nav__link">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Search</span>
+    </a>
+    <a href="screener.html" class="mobile-nav__link mobile-nav__link--active">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+      <span>Screener</span>
+    </a>
+    <a href="picks.html" class="mobile-nav__link">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span>Picks</span>
+    </a>
+  </nav>
+
+  <!-- <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script> -->
+  <script src="screener.js?v=3.0"></script>
+  <!-- <script src="app.js?v=3.0"></script> -->
+</body>
+</html>

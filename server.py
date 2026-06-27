@@ -18,6 +18,7 @@ from email.utils import parsedate_to_datetime
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from concurrent.futures import ThreadPoolExecutor
 
 app = FastAPI(title="IDX Analyzer API", version="1.0.0")
 
@@ -46,6 +47,12 @@ TICKER_MAP = {
     "ADMR": "ADMR.JK",
 }
 
+SCREENER_TICKERS = [
+    "BBCA", "BBRI", "BMRI", "BBNI", "ASII", "TLKM", "GOTO", "AMMN", 
+    "ADRO", "PTBA", "UNTR", "ICBP", "KLBF", "PGAS", "ANTM", "INCO", 
+    "MEDC", "BRIS", "UNVR", "BREN", "CUAN", "BUKA", "ARTO", "MDKA"
+]
+
 PERIOD_MAP = {
     "1D":  ("1d",   "5m"),
     "1W":  ("5d",   "15m"),
@@ -73,6 +80,51 @@ def safe_float(val) -> float | None:
         return None
 
 # ── API routes ─────────────────────────────────────────────────────────────
+
+@app.get("/api/screener")
+def get_screener():
+    """
+    Returns real-time data for the SCREENER_TICKERS universe.
+    """
+    def fetch_data(ticker):
+        symbol = yahoo_symbol(ticker)
+        try:
+            # fast_info is faster but lacks PE/Sector. We'll try .info
+            # Ponytail: keep it simple, handle failures gracefully
+            t = yf.Ticker(symbol)
+            info = t.info
+            hist = t.history(period="5d")
+            
+            if hist.empty:
+                return None
+                
+            closes = hist['Close'].values
+            latest = safe_float(closes[-1])
+            prev = safe_float(closes[-2]) if len(closes) > 1 else latest
+            
+            change = latest - prev if latest and prev else 0
+            change_pct = (change / prev * 100) if prev else 0
+            
+            return {
+                "ticker": ticker,
+                "name": info.get("shortName", ticker),
+                "sector": info.get("sector", "Unknown"),
+                "marketCap": info.get("marketCap", 0),
+                "forwardPE": safe_float(info.get("forwardPE", 0)),
+                "price": latest,
+                "change": safe_float(change),
+                "changePct": safe_float(change_pct),
+                "sparkline": [safe_float(x) for x in closes]
+            }
+        except Exception:
+            return None
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = list(executor.map(fetch_data, SCREENER_TICKERS))
+    
+    # Filter out Nones
+    data = [r for r in results if r]
+    return {"status": "success", "data": data, "count": len(data)}
 
 @app.get("/api/prices/{ticker}")
 def get_prices(ticker: str, period: str = "3M"):

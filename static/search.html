@@ -57,6 +57,7 @@
           <nav class="header-nav" style="margin-left: 0;">
             <a href="index.html" class="header-nav__link">Market Overview</a>
             <a href="search.html" class="header-nav__link header-nav__link--active">Stock Search</a>
+            <a href="screener.html" class="header-nav__link">Screener</a>
             <a href="picks.html" class="header-nav__link">Stock Picks</a>
           </nav>
           <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light theme">
@@ -324,33 +325,6 @@
         </div>
       </section>
 
-      <!-- ── Multi-Stock Comparison ──────────────────── -->
-      <section class="card card--glass card--comparison animate-in" id="comparison-section">
-        <div class="card__header">
-          <span class="card__title">
-            <svg class="card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            Multi-Stock Comparison
-          </span>
-          <span class="card__subtitle">Select 2+ stocks to compare normalized performance</span>
-        </div>
-        <div class="compare-selector">
-          <div class="compare-chips" id="compareChips"></div>
-          <div class="compare-add">
-            <input type="text" id="compareCustom" class="input input--sm" placeholder="Add ticker..." maxlength="6" style="text-transform:uppercase;" />
-            <button id="addCompareBtn" class="btn btn--sm btn--outline">+ Add</button>
-          </div>
-        </div>
-        <div id="compareEmpty" class="compare-empty">
-          <svg class="compare-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          <p>Select at least 2 stocks above to compare performance</p>
-        </div>
-        <div id="compareContent" style="display:none;">
-          <div class="chart-wrap chart-wrap--tall">
-            <canvas id="compareChart" role="img" aria-label="Multi-stock comparison chart"></canvas>
-          </div>
-          <div id="compareTable" class="compare-table-wrap"></div>
-        </div>
-      </section>
 
     </main>
   </div>
@@ -364,6 +338,10 @@
     <a href="search.html" class="mobile-nav__link mobile-nav__link--active">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <span>Search</span>
+    </a>
+    <a href="screener.html" class="mobile-nav__link">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+      <span>Screener</span>
     </a>
     <a href="picks.html" class="mobile-nav__link">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
