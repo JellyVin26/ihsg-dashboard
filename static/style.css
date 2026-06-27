@@ -254,6 +254,12 @@ body {
   align-items: center;
   gap: 10px;
 }
+.mobile-logo {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
 .logo__icon-wrap {
   width: 32px;
   height: 32px;
@@ -1121,6 +1127,7 @@ body {
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .sidebar { display: none; }
+  .mobile-logo { display: flex !important; }
   .container { padding: 1rem; gap: 1rem; margin-bottom: 70px; }
   .app-header__inner { gap: 0.75rem; justify-content: space-between; }
   
@@ -1164,6 +1171,14 @@ body {
   .card { padding: 1rem; border-radius: var(--radius-lg); }
   .metrics-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
   .signal-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  
+  .toast {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    font-size: 12px;
+  }
 }
 
 @media (max-width: 480px) {
