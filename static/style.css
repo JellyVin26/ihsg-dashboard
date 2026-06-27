@@ -1190,6 +1190,14 @@ body {
     border-radius: 30px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   }
+
+  .picks-header-metrics {
+    flex-direction: column;
+    width: 100%;
+  }
+  .pick-metric-card {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
