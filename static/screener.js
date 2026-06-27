@@ -6,7 +6,7 @@ let screenerData = [];
 let filteredData = [];
 let compareSelection = [];
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = 'https://ihsg-dashboard.onrender.com/api';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
