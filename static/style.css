@@ -1134,7 +1134,7 @@ body {
   
   /* Bottom Navigation Bar */
   .mobile-nav { 
-    display: flex;
+    display: flex !important;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -1180,11 +1180,15 @@ body {
   .signal-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
   
   .toast {
-    top: 10px;
-    right: 10px;
-    left: 10px;
+    top: auto;
+    bottom: 80px;
+    right: 16px;
+    left: 16px;
     width: auto;
-    font-size: 12px;
+    font-size: 13px;
+    text-align: center;
+    border-radius: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   }
 }
 
