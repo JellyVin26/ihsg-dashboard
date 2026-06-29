@@ -98,8 +98,14 @@ function generateAIScan() {
   
   const textEl = document.getElementById('aiScanText');
   if (textEl && bestSector) {
-    const trend = bestAvg > 0 ? 'strong accumulation' : 'defensive rotation';
-    textEl.textContent = `"${bestSector} sector is showing ${trend}. Momentum signal is strengthening across Tier-1 vendors."`;
+    const isAccumulation = bestAvg > 0;
+    const verbs = isAccumulation ? ['strong accumulation', 'heavy buying interest', 'institutional support'] : ['defensive rotation', 'distribution', 'profit taking'];
+    const actions = isAccumulation ? ['strengthening', 'building', 'accelerating'] : ['weakening', 'fading', 'cooling off'];
+    
+    const randomVerb = verbs[Math.floor(Math.random() * verbs.length)];
+    const randomAction = actions[Math.floor(Math.random() * actions.length)];
+    
+    textEl.textContent = `"${bestSector} sector is showing ${randomVerb}. Momentum signal is ${randomAction} across Tier-1 vendors."`;
   }
 }
 
@@ -177,7 +183,13 @@ function renderTable() {
       if (e.target.checked) {
         if (compareSelection.length >= 2) {
           e.target.checked = false;
-          alert("You can only compare 2 stocks at a time.");
+          const helper = document.getElementById('cmpHelper');
+          helper.textContent = 'Maximum 2 stocks allowed for comparison.';
+          helper.style.color = 'var(--color-down)';
+          setTimeout(() => {
+            helper.textContent = 'Comparison updated.';
+            helper.style.color = 'var(--color-text-3)';
+          }, 3000);
           return;
         }
         compareSelection.push(t);
@@ -255,16 +267,16 @@ async function loadConfidence(ticker) {
   if (activeRow) activeRow.style.borderColor = 'var(--color-accent)';
 
   try {
-    const res = await fetch(`${API_BASE}/indicator/${ticker}`);
+    const res = await fetch(`${API_BASE}/prices/${ticker}?period=1mo`);
     const data = await res.json();
     
-    if (data.prediction) {
-      const isUp = data.prediction === 'UP';
-      document.getElementById('confidenceVal').textContent = `${data.probability}%`;
+    if (data.ml_prediction && data.ml_prediction !== 'Unknown') {
+      const isUp = data.ml_prediction === 'UP';
+      document.getElementById('confidenceVal').textContent = `${data.ml_confidence}%`;
       document.getElementById('confidenceRing').style.borderTopColor = isUp ? 'var(--color-up)' : 'var(--color-down)';
       document.getElementById('confidenceTrend').textContent = `${isUp ? 'Bullish' : 'Bearish'} Trend`;
       document.getElementById('confidenceTrend').style.color = isUp ? 'var(--color-up)' : 'var(--color-down)';
-      document.getElementById('confidenceDesc').textContent = `System predicts continued ${isUp ? 'momentum' : 'weakness'} through tomorrow's session based on ${data.probability}% confidence interval.`;
+      document.getElementById('confidenceDesc').textContent = `System predicts continued ${isUp ? 'momentum' : 'weakness'} through tomorrow's session based on ${data.ml_confidence}% confidence interval.`;
     } else {
       throw new Error();
     }
