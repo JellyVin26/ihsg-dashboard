@@ -67,9 +67,39 @@ async function fetchScreenerData() {
       });
     });
 
+    if (screenerData.length >= 2) {
+      compareSelection = [screenerData[0].ticker, screenerData[1].ticker];
+    }
     applyFilters();
+    
+    if (screenerData.length > 0) {
+      loadConfidence(screenerData[0].ticker);
+    }
+    generateAIScan();
   } catch (err) {
     document.getElementById('screenerResultsBody').innerHTML = `<div style="padding: 20px; color: red;">Failed to load screener data. Backend running?</div>`;
+  }
+}
+
+function generateAIScan() {
+  const sectors = {};
+  screenerData.forEach(d => {
+    if (!sectors[d.sector]) sectors[d.sector] = { sum: 0, count: 0 };
+    sectors[d.sector].sum += d.changePct;
+    sectors[d.sector].count++;
+  });
+  let bestSector = '';
+  let bestAvg = -999;
+  for (let s in sectors) {
+    if (s === 'Unknown') continue;
+    let avg = sectors[s].sum / sectors[s].count;
+    if (avg > bestAvg) { bestAvg = avg; bestSector = s; }
+  }
+  
+  const textEl = document.getElementById('aiScanText');
+  if (textEl && bestSector) {
+    const trend = bestAvg > 0 ? 'strong accumulation' : 'defensive rotation';
+    textEl.textContent = `"${bestSector} sector is showing ${trend}. Momentum signal is strengthening across Tier-1 vendors."`;
   }
 }
 
@@ -157,6 +187,8 @@ function renderTable() {
       updateCompare();
     });
   });
+
+  updateCompare();
 }
 
 function generateSparkline(data, color) {
@@ -193,6 +225,8 @@ function updateCompare() {
   const s1 = screenerData.find(d => d.ticker === compareSelection[0]);
   const s2 = screenerData.find(d => d.ticker === compareSelection[1]);
   
+  if (!s1 || !s2) return;
+
   document.getElementById('cmpTicker1').textContent = s1.ticker;
   document.getElementById('cmpTicker2').textContent = s2.ticker;
   
