@@ -1216,6 +1216,13 @@ body {
     padding-left: 0;
     padding-top: 24px;
   }
+  .screener-grid-row {
+    grid-template-columns: 40px 1.5fr 1fr 1fr;
+    font-size: 11px;
+  }
+  .screener-hide-mobile {
+    display: none !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1525,6 +1532,12 @@ body {
   flex-direction: column;
   gap: 24px;
   overflow-y: auto;
+}
+
+.screener-grid-row {
+  display: grid;
+  grid-template-columns: 40px 2fr 1fr 1.5fr 1fr;
+  align-items: center;
 }
 
 .picks-header-metrics {

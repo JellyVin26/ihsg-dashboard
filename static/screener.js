@@ -154,7 +154,7 @@ function renderTable() {
     const sparkline = generateSparkline(d.sparkline, color);
 
     return `
-      <div class="screener-row" data-ticker="${d.ticker}" style="display: grid; grid-template-columns: 40px 2fr 1fr 1.5fr 1fr; padding: 12px 16px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); align-items: center; cursor: pointer; transition: 0.2s;">
+      <div class="screener-row screener-grid-row" data-ticker="${d.ticker}" style="padding: 12px 16px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); cursor: pointer; transition: 0.2s;">
         <div onclick="event.stopPropagation()">
           <input type="checkbox" class="compare-cb" data-ticker="${d.ticker}" ${compareSelection.includes(d.ticker) ? 'checked' : ''} style="accent-color: var(--color-accent); width: 16px; height: 16px; cursor: pointer;" />
         </div>
@@ -167,7 +167,7 @@ function renderTable() {
           ${isUp ? '+' : ''}${d.changePct.toFixed(2)}%
           ${sparkline}
         </div>
-        <div style="font-size: 13px; color: var(--color-text-2);">Rp ${mcapStr}</div>
+        <div class="screener-hide-mobile" style="font-size: 13px; color: var(--color-text-2);">Rp ${mcapStr}</div>
       </div>
     `;
   }).join('');
