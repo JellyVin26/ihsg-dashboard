@@ -102,7 +102,7 @@ def get_screener():
             if hist.empty:
                 return None
                 
-            closes = hist['Close'].values
+            closes = hist['Close'].ffill().values
             volumes = hist['Volume'].fillna(0).values
             latest = safe_float(closes[-1])
             prev = safe_float(closes[-2]) if len(closes) > 1 else latest
