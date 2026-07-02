@@ -54,6 +54,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyFilters();
   });
   document.getElementById('clearFiltersBtn')?.addEventListener('click', clearAllFilters);
+  document.getElementById('exportCsvBtn')?.addEventListener('click', () => {
+    if (!filteredData || filteredData.length === 0) return;
+    
+    // Create CSV header
+    let csv = 'Ticker,Name,Sector,Price,Day Change (%),Market Cap (Trillions)\n';
+    
+    // Add rows
+    filteredData.forEach(d => {
+      const capT = ((d.marketCap || 0) / 1e12).toFixed(2);
+      // Escape commas in names/sectors just in case
+      const safeName = `"${(d.name || '').replace(/"/g, '""')}"`;
+      const safeSector = `"${(d.sector || '').replace(/"/g, '""')}"`;
+      csv += `${d.ticker},${safeName},${safeSector},${d.price},${(d.changePct||0).toFixed(2)},${capT}\n`;
+    });
+    
+    // Trigger download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `IDX_Screener_Export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
 
   // ── Mobile drawer bindings ────────────────────────────
   const drawer = document.getElementById('filterDrawer');
