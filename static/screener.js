@@ -223,7 +223,6 @@ function renderTable() {
         <div style="text-align: right; color: ${color}; font-family: 'JetBrains Mono'; font-size: 13px;">
           ${isUp ? '+' : ''}${d.changePct.toFixed(2)}%
         </div>
-        <div class="screener-hide-mobile" style="display: flex; align-items: center; justify-content: flex-end;">${sparkline}</div>
         <div style="text-align: right; font-size: 12px; color: var(--color-text-2);">${mcapStr}</div>
       </div>
     `;

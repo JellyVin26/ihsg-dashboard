@@ -1163,7 +1163,7 @@ body {
 
 .screener-grid-row {
   display: grid;
-  grid-template-columns: 40px 2fr 1fr 1fr 80px 1fr;
+  grid-template-columns: 40px 2.5fr 1fr 1fr 1fr;
   align-items: center;
 }
 
