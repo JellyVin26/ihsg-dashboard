@@ -50,7 +50,11 @@ TICKER_MAP = {
 SCREENER_TICKERS = [
     "BBCA", "BBRI", "BMRI", "BBNI", "ASII", "TLKM", "GOTO", "AMMN", 
     "ADRO", "PTBA", "UNTR", "ICBP", "KLBF", "PGAS", "ANTM", "INCO", 
-    "MEDC", "BRIS", "UNVR", "BREN", "CUAN", "BUKA", "ARTO", "MDKA"
+    "MEDC", "BRIS", "UNVR", "BREN", "CUAN", "BUKA", "ARTO", "MDKA",
+    "TPIA", "BYAN", "CPIN", "INTP", "SMGR", "AKRA", "ITMG", "HRUM",
+    "EXCL", "ISAT", "MAPI", "AMRT", "INDF", "EMTK", "ESSA", "ACES",
+    "CTRA", "BSDE", "SMRA", "PWON", "BRPT", "INKP", "TKIM", "TINS",
+    "SIDO", "MYOR", "TBIG", "TOWR", "MIKA", "HEAL", "JPFA", "MNCN"
 ]
 
 PERIOD_MAP = {
