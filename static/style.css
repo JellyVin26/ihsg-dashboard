@@ -1305,8 +1305,9 @@ body {
     overflow: visible;
   }
   .screener-grid-row {
-    grid-template-columns: 40px 1.5fr 1fr 1fr;
+    grid-template-columns: 32px 1.5fr 1fr 1fr 1fr;
     font-size: 11px;
+    gap: 8px;
   }
   .screener-hide-mobile {
     display: none !important;
