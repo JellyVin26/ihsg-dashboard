@@ -211,7 +211,7 @@ function renderTable() {
     const sparkline = generateSparkline(d.sparkline, color);
 
     return `
-      <div class="screener-row screener-grid-row" data-ticker="${d.ticker}" style="padding: 12px 16px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); cursor: pointer; transition: 0.2s;">
+      <div class="screener-row screener-grid-row" data-ticker="${d.ticker}" style="padding: 12px 16px; margin-right: 2px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); cursor: pointer; transition: 0.2s;">
         <div onclick="event.stopPropagation()">
           <input type="checkbox" class="compare-cb" data-ticker="${d.ticker}" ${compareSelection.includes(d.ticker) ? 'checked' : ''} style="accent-color: var(--color-accent); width: 16px; height: 16px; cursor: pointer;" />
         </div>
