@@ -30,11 +30,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ── Desktop filter bindings ───────────────────────────
+  document.querySelectorAll('.filter-cb:not(.filter-cb-drawer)').forEach(cb => cb.addEventListener('change', applyFilters));
   document.getElementById('peFilter')?.addEventListener('input', (e) => {
     document.getElementById('peValue').textContent = `0 - ${e.target.value}x`;
+    applyFilters();
   });
   document.getElementById('clearFiltersBtn')?.addEventListener('click', clearAllFilters);
-  document.getElementById('applyFiltersBtn')?.addEventListener('click', applyFilters);
 
   // ── Mobile drawer bindings ────────────────────────────
   const drawer = document.getElementById('filterDrawer');
@@ -92,7 +93,10 @@ async function fetchScreenerData() {
     if (drawerEl) drawerEl.innerHTML = sectorHtmlDrawer;
     
     document.querySelectorAll('.filter-sector-btn').forEach(btn => {
-      btn.addEventListener('click', () => btn.classList.toggle('btn--active'));
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('btn--active');
+        applyFilters();
+      });
     });
     document.querySelectorAll('.filter-sector-btn-drawer').forEach(btn => {
       btn.addEventListener('click', () => btn.classList.toggle('btn--active'));
