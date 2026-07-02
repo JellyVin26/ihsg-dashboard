@@ -176,17 +176,20 @@
 
           <div class="card" style="padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
-              <h3 style="font-size: 14px; font-weight: 700;">Next-Day Confidence</h3>
-              <span style="font-size: 10px; color: var(--color-text-3);">Updated live</span>
+              <h3 style="font-size: 14px; font-weight: 700;">Volume Trend Analysis</h3>
+              <span style="font-size: 10px; color: var(--color-text-3); text-transform: uppercase;">Updated live</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 20px;">
-              <div style="position: relative; width: 80px; height: 80px; border-radius: 50%; border: 6px solid var(--color-surface-2); display: flex; align-items: center; justify-content: center; border-top-color: var(--color-border); flex-shrink: 0;" id="confidenceRing">
-                <div style="font-size: 20px; font-weight: 800; font-family: 'JetBrains Mono';" id="confidenceVal">--%</div>
-              </div>
-              <div>
-                <div style="font-size: 14px; font-weight: 600; color: var(--color-text-3); margin-bottom: 4px;" id="confidenceTrend">Select a Stock</div>
-                <div style="font-size: 11px; color: var(--color-text-3); line-height: 1.4;" id="confidenceDesc">Click a stock to view its AI trend prediction.</div>
-              </div>
+            <div style="display: flex; align-items: flex-end; gap: 4px; height: 40px; margin-bottom: 16px;" id="volumeTrendBars">
+              <div style="flex: 1; background: var(--color-surface-2); border-radius: 2px; height: 20%;"></div>
+              <div style="flex: 1; background: var(--color-surface-2); border-radius: 2px; height: 30%;"></div>
+              <div style="flex: 1; background: var(--color-surface-2); border-radius: 2px; height: 15%;"></div>
+              <div style="flex: 1; background: var(--color-surface-2); border-radius: 2px; height: 20%;"></div>
+              <div style="flex: 1; background: var(--color-surface-2); border-radius: 2px; height: 10%;"></div>
+              <div style="flex: 1; background: var(--color-surface-2); border-radius: 2px; height: 25%;"></div>
+            </div>
+            <div>
+              <div style="font-size: 14px; font-weight: 800; color: var(--color-text-3); margin-bottom: 4px;" id="volumeTrendTicker">Select a Stock</div>
+              <div style="font-size: 12px; color: var(--color-text-2); line-height: 1.5;" id="volumeTrendDesc">Click a stock to view its volume trend analysis.</div>
             </div>
           </div>
         </aside>
