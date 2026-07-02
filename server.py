@@ -93,13 +93,13 @@ def get_screener():
             # Ponytail: keep it simple, handle failures gracefully
             t = yf.Ticker(symbol)
             info = t.info
-            hist = t.history(period="5d")
+            hist = t.history(period="1mo")
             
             if hist.empty:
                 return None
                 
             closes = hist['Close'].values
-            volumes = hist['Volume'].values
+            volumes = hist['Volume'].fillna(0).values
             latest = safe_float(closes[-1])
             prev = safe_float(closes[-2]) if len(closes) > 1 else latest
             

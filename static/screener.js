@@ -78,7 +78,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function fetchScreenerData() {
   try {
-    const res = await fetch(`${API_BASE}/screener`);
+    const cb = new Date().getTime();
+    const res = await fetch(`${API_BASE}/screener?cb=${cb}`);
     const data = await res.json();
     screenerData = data.data || [];
     
