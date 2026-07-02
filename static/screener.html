@@ -75,10 +75,10 @@
             <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--color-text-1);">Sector</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="sectorFiltersDrawer"></div>
           </div>
-          <div style="display: flex; gap: 8px; margin-top: 24px;">
-            <button id="clearFiltersBtnDrawer" class="btn btn--outline" style="flex: 1;">Clear All</button>
-            <button id="applyFiltersBtnDrawer" class="btn btn--primary" style="flex: 1;">Apply</button>
-          </div>
+        </div>
+        <div style="display: flex; gap: 8px; padding: 16px 24px; border-top: 1px solid var(--color-border); background: var(--color-surface); position: sticky; bottom: 0; z-index: 10;">
+          <button id="clearFiltersBtnDrawer" class="btn btn--outline" style="flex: 1;">Clear All</button>
+          <button id="applyFiltersBtnDrawer" class="btn btn--primary" style="flex: 1;">Apply</button>
         </div>
       </div>
 
@@ -104,6 +104,9 @@
           <div class="filter-group">
             <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--color-text-1);">Sector</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="sectorFilters"></div>
+          </div>
+          <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--color-border);">
+            <button id="applyFiltersBtn" class="btn btn--primary" style="width: 100%;">Apply Filters</button>
           </div>
         </aside>
 
