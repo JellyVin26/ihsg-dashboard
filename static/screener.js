@@ -29,20 +29,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     themeIconSun.style.display = isDark ? 'block' : 'none';
   });
 
-  // Bind filters
-  document.querySelectorAll('.filter-cb').forEach(cb => cb.addEventListener('change', applyFilters));
-  document.getElementById('peFilter').addEventListener('input', (e) => {
+  // ── Desktop filter bindings ───────────────────────────
+  document.querySelectorAll('.filter-cb:not(.filter-cb-drawer)').forEach(cb => cb.addEventListener('change', applyFilters));
+  document.getElementById('peFilter')?.addEventListener('input', (e) => {
     document.getElementById('peValue').textContent = `0 - ${e.target.value}x`;
     applyFilters();
   });
-  
-  // Clear
-  document.getElementById('clearFiltersBtn').addEventListener('click', () => {
-    document.querySelectorAll('.filter-cb').forEach(cb => cb.checked = true);
-    document.getElementById('peFilter').value = 50;
-    document.getElementById('peValue').textContent = '0 - 50x';
-    document.querySelectorAll('.filter-sector-btn').forEach(btn => btn.classList.remove('btn--active'));
+  document.getElementById('clearFiltersBtn')?.addEventListener('click', clearAllFilters);
+
+  // ── Mobile drawer bindings ────────────────────────────
+  const drawer = document.getElementById('filterDrawer');
+  const overlay = document.getElementById('filterDrawerOverlay');
+
+  const openDrawer = () => {
+    drawer.classList.add('is-open');
+    overlay.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+  };
+  const closeDrawer = () => {
+    drawer.classList.remove('is-open');
+    overlay.classList.remove('is-open');
+    document.body.style.overflow = '';
+  };
+
+  document.getElementById('filterToggleBtn')?.addEventListener('click', openDrawer);
+  document.getElementById('filterDrawerClose')?.addEventListener('click', closeDrawer);
+  overlay?.addEventListener('click', closeDrawer);
+
+  document.getElementById('peFilterDrawer')?.addEventListener('input', (e) => {
+    document.getElementById('peValueDrawer').textContent = `0 - ${e.target.value}x`;
+  });
+
+  document.getElementById('clearFiltersBtnDrawer')?.addEventListener('click', () => {
+    document.querySelectorAll('.filter-cb-drawer').forEach(cb => cb.checked = true);
+    document.getElementById('peFilterDrawer').value = 50;
+    document.getElementById('peValueDrawer').textContent = '0 - 50x';
+    document.querySelectorAll('.filter-sector-btn-drawer').forEach(btn => btn.classList.remove('btn--active'));
+  });
+
+  document.getElementById('applyFiltersBtnDrawer')?.addEventListener('click', () => {
     applyFilters();
+    closeDrawer();
   });
 
   // Fetch Data
@@ -55,16 +82,24 @@ async function fetchScreenerData() {
     const data = await res.json();
     screenerData = data.data || [];
     
-    // Inject sectors
+    // Inject sectors into desktop sidebar
     const sectors = [...new Set(screenerData.map(d => d.sector).filter(s => s && s !== 'Unknown'))];
     const sectorHtml = sectors.map(s => `<button class="btn btn--outline btn--sm filter-sector-btn" data-sector="${s}">${s.split(' ')[0]}</button>`).join('');
     document.getElementById('sectorFilters').innerHTML = sectorHtml;
+    
+    // Inject sectors into mobile drawer too
+    const sectorHtmlDrawer = sectors.map(s => `<button class="btn btn--outline btn--sm filter-sector-btn-drawer" data-sector="${s}">${s.split(' ')[0]}</button>`).join('');
+    const drawerEl = document.getElementById('sectorFiltersDrawer');
+    if (drawerEl) drawerEl.innerHTML = sectorHtmlDrawer;
     
     document.querySelectorAll('.filter-sector-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         btn.classList.toggle('btn--active');
         applyFilters();
       });
+    });
+    document.querySelectorAll('.filter-sector-btn-drawer').forEach(btn => {
+      btn.addEventListener('click', () => btn.classList.toggle('btn--active'));
     });
 
     if (screenerData.length >= 2) {
@@ -109,11 +144,30 @@ function generateAIScan() {
   }
 }
 
+function clearAllFilters() {
+  document.querySelectorAll('.filter-cb').forEach(cb => cb.checked = true);
+  const peFilter = document.getElementById('peFilter');
+  if (peFilter) { peFilter.value = 50; document.getElementById('peValue').textContent = '0 - 50x'; }
+  const peFilterDrawer = document.getElementById('peFilterDrawer');
+  if (peFilterDrawer) { peFilterDrawer.value = 50; document.getElementById('peValueDrawer').textContent = '0 - 50x'; }
+  document.querySelectorAll('.filter-sector-btn, .filter-sector-btn-drawer').forEach(btn => btn.classList.remove('btn--active'));
+  applyFilters();
+}
+
 function applyFilters() {
-  const mcapCaps = Array.from(document.querySelectorAll('.filter-cb[data-filter="mcap"]:checked')).map(cb => cb.value);
-  const maxPe = parseInt(document.getElementById('peFilter').value);
+  // Merge checked states from desktop + drawer (drawer takes priority on mobile)
+  const isMobile = window.innerWidth <= 768;
+  const cbSelector = isMobile
+    ? '.filter-cb-drawer[data-filter="mcap"]:checked'
+    : '.filter-cb:not(.filter-cb-drawer)[data-filter="mcap"]:checked';
+  const mcapCaps = Array.from(document.querySelectorAll(cbSelector)).map(cb => cb.value);
+
+  const peEl = isMobile ? document.getElementById('peFilterDrawer') : document.getElementById('peFilter');
+  const maxPe = parseInt((peEl || document.getElementById('peFilter')).value);
   
-  const activeSectors = Array.from(document.querySelectorAll('.filter-sector-btn.btn--active')).map(b => b.dataset.sector);
+  const activeSectors = Array.from(document.querySelectorAll(
+    isMobile ? '.filter-sector-btn-drawer.btn--active' : '.filter-sector-btn:not(.filter-sector-btn-drawer).btn--active'
+  )).map(b => b.dataset.sector);
 
   filteredData = screenerData.filter(d => {
     // 1. Market Cap
@@ -137,7 +191,10 @@ function applyFilters() {
 }
 
 function renderTable() {
-  document.getElementById('matchCount').textContent = filteredData.length;
+  const count = filteredData.length;
+  document.getElementById('matchCount').textContent = count;
+  const mobileCount = document.getElementById('matchCountMobile');
+  if (mobileCount) mobileCount.textContent = count;
   const tbody = document.getElementById('screenerResultsBody');
   
   if (filteredData.length === 0) {
