@@ -219,12 +219,12 @@ function renderTable() {
           <div style="font-weight: 700; color: var(--color-text-1);">${d.ticker}</div>
           <div style="font-size: 11px; color: var(--color-text-3); text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 150px;">${d.name} &bull; ${d.sector.split(' ')[0]}</div>
         </div>
-        <div style="font-family: 'JetBrains Mono'; font-weight: 500;">${d.price.toLocaleString()}</div>
-        <div style="display: flex; align-items: center; gap: 8px; color: ${color}; font-family: 'JetBrains Mono'; font-size: 13px;">
+        <div style="font-family: 'JetBrains Mono'; font-weight: 500; text-align: right;">${d.price.toLocaleString()}</div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; color: ${color}; font-family: 'JetBrains Mono'; font-size: 13px;">
           ${isUp ? '+' : ''}${d.changePct.toFixed(2)}%
-          ${sparkline}
+          <div class="screener-hide-mobile">${sparkline}</div>
         </div>
-        <div class="screener-hide-mobile" style="font-size: 13px; color: var(--color-text-2);">Rp ${mcapStr}</div>
+        <div class="screener-hide-mobile" style="text-align: right; font-size: 13px; color: var(--color-text-2);">Rp ${mcapStr}</div>
       </div>
     `;
   }).join('');
