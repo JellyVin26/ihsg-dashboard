@@ -55,10 +55,14 @@
       <div id="filterDrawer" class="screener-filter-drawer">
         <div class="screener-filter-drawer__inner">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="font-size: 14px; font-weight: 700; color: var(--color-text-1); text-transform: uppercase; letter-spacing: 0.05em;">Screener Filters</h2>
-            <button id="filterDrawerClose" style="background: none; border: none; color: var(--color-text-2); cursor: pointer; padding: 4px;">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
+            <h2 style="font-size: 14px; font-weight: 700; color: var(--color-text-1); text-transform: uppercase; letter-spacing: 0.05em;">Filters</h2>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <button id="clearFiltersBtnDrawer" style="background: none; border: none; color: var(--color-accent); font-size: 13px; font-weight: 600; cursor: pointer;">Clear</button>
+              <button id="applyFiltersBtnDrawer" class="btn btn--primary btn--sm" style="padding: 4px 12px; font-size: 12px;">Apply</button>
+              <button id="filterDrawerClose" style="background: none; border: none; color: var(--color-text-2); cursor: pointer; padding: 4px; display: flex;">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
           </div>
           <div class="filter-group">
             <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--color-text-1);">Market Cap</h3>
@@ -75,10 +79,6 @@
             <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--color-text-1);">Sector</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="sectorFiltersDrawer"></div>
           </div>
-        </div>
-        <div style="display: flex; gap: 8px; padding: 16px 24px; border-top: 1px solid var(--color-border); background: var(--color-surface); z-index: 10; margin-top: auto;">
-          <button id="clearFiltersBtnDrawer" class="btn btn--outline" style="flex: 1;">Clear All</button>
-          <button id="applyFiltersBtnDrawer" class="btn btn--primary" style="flex: 1;">Apply</button>
         </div>
       </div>
 
