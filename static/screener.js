@@ -103,9 +103,8 @@ async function fetchScreenerData() {
       btn.addEventListener('click', () => btn.classList.toggle('btn--active'));
     });
 
-    if (screenerData.length >= 2) {
-      compareSelection = [screenerData[0].ticker, screenerData[1].ticker];
-    }
+    // Default to empty selection
+    compareSelection = [];
     applyFilters();
     
     if (screenerData.length > 0) {
