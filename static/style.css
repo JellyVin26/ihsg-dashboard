@@ -1318,6 +1318,9 @@ body {
   .screener-filter-btn {
     display: flex !important;
   }
+  .screener-filter-drawer {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
 }
 
 @media (max-width: 480px) {
