@@ -5,11 +5,29 @@
 let screenerData = [];
 let filteredData = [];
 let compareSelection = [];
+let currentSortColumn = null;
+let currentSortDirection = 'asc';
 
 const API_BASE = 'https://ihsg-dashboard.onrender.com/api';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+  // Sorting setup
+  document.querySelectorAll('.sort-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const col = header.dataset.sort;
+      if (currentSortColumn === col) {
+        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSortColumn = col;
+        // Default descending for numeric columns, ascending for ticker
+        currentSortDirection = col === 'ticker' ? 'asc' : 'desc';
+      }
+      renderTable();
+    });
+  });
+
+
   // Theme setup
   const themeToggle = document.getElementById('themeToggle');
   const themeIconMoon = document.getElementById('themeIconMoon');
@@ -191,6 +209,32 @@ function applyFilters() {
 }
 
 function renderTable() {
+  if (currentSortColumn) {
+    filteredData.sort((a, b) => {
+      let valA = a[currentSortColumn];
+      let valB = b[currentSortColumn];
+      
+      if (currentSortColumn === 'change') { valA = a.changePct; valB = b.changePct; }
+      if (currentSortColumn === 'mcap') { valA = a.marketCap; valB = b.marketCap; }
+      
+      if (typeof valA === 'string') {
+        return currentSortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      }
+      return currentSortDirection === 'asc' ? valA - valB : valB - valA;
+    });
+  }
+
+  // Update headers UI
+  document.querySelectorAll('.sort-header').forEach(h => {
+    h.dataset.active = (h.dataset.sort === currentSortColumn);
+    const icon = h.querySelector('.sort-icon');
+    if (h.dataset.sort === currentSortColumn) {
+      icon.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+    } else {
+      icon.textContent = '▼'; // default inactive
+    }
+  });
+
   const count = filteredData.length;
   document.getElementById('matchCount').textContent = count;
   const mobileCount = document.getElementById('matchCountMobile');

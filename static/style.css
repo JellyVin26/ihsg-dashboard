@@ -1167,6 +1167,20 @@ body {
   align-items: center;
 }
 
+.sort-header:hover {
+  color: var(--color-text-1);
+}
+.sort-icon {
+  font-size: 10px;
+  opacity: 0.5;
+}
+.sort-header[data-active="true"] {
+  color: var(--color-accent);
+}
+.sort-header[data-active="true"] .sort-icon {
+  opacity: 1;
+}
+
 
 /* Mobile filter drawer */
 .screener-filter-drawer {
