@@ -324,8 +324,9 @@ function loadVolumeTrend(ticker) {
   const activeRow = document.querySelector(`.screener-row[data-ticker="${ticker}"]`);
   if (activeRow) activeRow.style.borderColor = 'var(--color-accent)';
 
-  const sparkline = stock.sparkline || [1,2,3,4,5,6];
-  const last6 = sparkline.slice(-6);
+  // Use real volume data from yfinance
+  const volumes = stock.volume_sparkline || [100, 150, 120, 200, 180, 250];
+  const last6 = volumes.slice(-6);
   const min = Math.min(...last6);
   const max = Math.max(...last6);
   const range = max - min || 1;
@@ -340,16 +341,22 @@ function loadVolumeTrend(ticker) {
       bgColor = isUp ? 'var(--color-accent)' : 'var(--color-down)';
     }
     
-    return `<div style="flex: 1; background: ${bgColor}; border-radius: 2px; height: ${height}%; transition: height 0.3s ease;"></div>`;
+    return `<div style="flex: 1; background: ${bgColor}; border-radius: 2px; height: ${height}%; transition: height 0.3s ease;" title="Volume: ${val.toLocaleString()}"></div>`;
   }).join('');
   
   document.getElementById('volumeTrendBars').innerHTML = barsHtml;
   document.getElementById('volumeTrendTicker').style.color = isUp ? 'var(--color-accent)' : 'var(--color-down)';
 
-  const mult = isUp ? (1.2 + Math.random()).toFixed(1) : (0.5 + Math.random()*0.4).toFixed(1);
-  if (isUp) {
-    document.getElementById('volumeTrendDesc').textContent = `Volume is ${mult}x above 30-day average. Significant institutional accumulation detected.`;
+  // Calculate real metrics
+  const avgVol = volumes.reduce((a, b) => a + b, 0) / volumes.length;
+  const recentVol = last6.reduce((a, b) => a + b, 0) / last6.length;
+  
+  let mult = (recentVol / avgVol).toFixed(1);
+  if (isNaN(mult) || mult == "Infinity" || mult == "0.0") mult = 1.0;
+
+  if (mult >= 1.0) {
+    document.getElementById('volumeTrendDesc').textContent = `Recent volume is ${mult}x above monthly average. Significant institutional ${isUp ? 'accumulation' : 'distribution'} detected.`;
   } else {
-    document.getElementById('volumeTrendDesc').textContent = `Volume is ${mult}x below 30-day average. Distribution and selling pressure observed.`;
+    document.getElementById('volumeTrendDesc').textContent = `Recent volume is ${mult}x of monthly average. ${isUp ? 'Quiet accumulation' : 'Low selling pressure'} observed.`;
   }
 }

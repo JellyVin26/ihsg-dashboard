@@ -99,6 +99,7 @@ def get_screener():
                 return None
                 
             closes = hist['Close'].values
+            volumes = hist['Volume'].values
             latest = safe_float(closes[-1])
             prev = safe_float(closes[-2]) if len(closes) > 1 else latest
             
@@ -114,7 +115,8 @@ def get_screener():
                 "price": latest,
                 "change": safe_float(change),
                 "changePct": safe_float(change_pct),
-                "sparkline": [safe_float(x) for x in closes]
+                "sparkline": [safe_float(x) for x in closes],
+                "volume_sparkline": [int(x) for x in volumes]
             }
         except Exception:
             return None
