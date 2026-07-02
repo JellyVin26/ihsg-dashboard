@@ -220,10 +220,10 @@ function renderTable() {
           <div style="font-size: 11px; color: var(--color-text-3); text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 150px;">${d.name} &bull; ${d.sector.split(' ')[0]}</div>
         </div>
         <div style="font-family: 'JetBrains Mono'; font-weight: 500; text-align: right;">${d.price.toLocaleString()}</div>
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; color: ${color}; font-family: 'JetBrains Mono'; font-size: 13px;">
+        <div style="text-align: right; color: ${color}; font-family: 'JetBrains Mono'; font-size: 13px;">
           ${isUp ? '+' : ''}${d.changePct.toFixed(2)}%
-          <div class="screener-hide-mobile">${sparkline}</div>
         </div>
+        <div class="screener-hide-mobile" style="display: flex; align-items: center; justify-content: flex-end;">${sparkline}</div>
         <div style="text-align: right; font-size: 12px; color: var(--color-text-2);">${mcapStr}</div>
       </div>
     `;
