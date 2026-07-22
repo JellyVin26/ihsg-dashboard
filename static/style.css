@@ -1317,6 +1317,9 @@ body {
     padding-top: 16px;
     padding: 16px;
   }
+  .hide-mobile {
+    display: none !important;
+  }
   .screener-results {
     padding: 0 16px;
     overflow: visible;
