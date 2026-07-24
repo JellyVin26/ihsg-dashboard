@@ -1021,94 +1021,25 @@ def get_broker_summary(ticker: str, date: str = None):
     IDX_URL = "https://www.idx.co.id/primary/TradingSummary/GetBrokerSummary"
 
     def direct_fetch(d):
-        """Try direct HTTP request first — fast but blocked by Cloudflare usually."""
+        """Fetch using curl_cffi to bypass Cloudflare without needing Playwright browser binaries."""
         try:
-            import requests as req_lib
+            from curl_cffi import requests as req_lib
             url = f"{IDX_URL}?start=0&length=9999&code={ticker_upper}&date={d.strftime('%Y-%m-%d')}"
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
                 "Accept": "application/json, text/plain, */*",
                 "Referer": "https://www.idx.co.id/id/data-pasar/ringkasan-perdagangan/ringkasan-broker/",
             }
-            r = req_lib.get(url, headers=headers, timeout=10)
+            # impersonate="chrome" applies TLS fingerprints that bypass Cloudflare
+            r = req_lib.get(url, headers=headers, impersonate="chrome", timeout=15)
             if r.status_code == 200:
                 data = r.json()
                 rows = data.get("data", [])
                 if rows:
                     return rows
         except Exception as e:
-            print(f"Direct fetch failed for {d}: {e}")
+            print(f"Fetch failed for {d}: {e}")
         return None
-
-    def playwright_fetch(dates_to_try):
-        """Open ONE browser, solve Cloudflare once, then fetch all dates."""
-        try:
-            from playwright.sync_api import sync_playwright
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context(
-                    user_agent=(
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                        "AppleWebKit/537.36 (KHTML, like Gecko) "
-                        "Chrome/125.0.0.0 Safari/537.36"
-                    ),
-                    locale="id-ID",
-                    viewport={"width": 1280, "height": 800},
-                    extra_http_headers={"Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8"},
-                )
-                page = context.new_page()
-
-                # Navigate to broker page to get Cloudflare cookies
-                try:
-                    page.goto(
-                        "https://www.idx.co.id/id/data-pasar/ringkasan-perdagangan/ringkasan-broker/",
-                        wait_until="domcontentloaded",
-                        timeout=45000,
-                    )
-                except Exception as nav_err:
-                    print(f"Nav (ok to ignore): {nav_err}")
-
-                # Wait for Cloudflare JS challenge to complete
-                page.wait_for_timeout(12000)
-                print(f"Page title after wait: {page.title()}")
-
-                # Try each date using the same browser session
-                for d in dates_to_try:
-                    date_str = d.strftime("%Y-%m-%d")
-                    api_url = "%s?start=0&length=9999&code=%s&date=%s" % (
-                        IDX_URL, ticker_upper, date_str
-                    )
-                    js_code = """
-                        async () => {
-                            const r = await fetch('%s', {
-                                credentials: 'include',
-                                headers: {
-                                    'Accept': 'application/json, text/plain, */*',
-                                    'Referer': 'https://www.idx.co.id/id/data-pasar/ringkasan-perdagangan/ringkasan-broker/'
-                                }
-                            });
-                            if (!r.ok) return {error: r.status};
-                            return await r.json();
-                        }
-                    """ % api_url
-                    try:
-                        js_result = page.evaluate(js_code)
-                        print(f"Playwright result for {d}: {str(js_result)[:200]}")
-                        if js_result and isinstance(js_result, dict) and "data" in js_result:
-                            rows = js_result["data"]
-                            if rows:
-                                browser.close()
-                                return rows, d
-                    except Exception as e:
-                        print(f"Playwright JS fetch error for {d}: {e}")
-
-                browser.close()
-        except ImportError:
-            print("Playwright not installed.")
-        except Exception as e:
-            print(f"Playwright broker fetch error: {e}")
-        return None, None
-
 
     # Build list of dates to try (target + up to 5 previous days, skip weekends)
     dates_to_try = []
@@ -1119,7 +1050,7 @@ def get_broker_summary(ticker: str, date: str = None):
         if len(dates_to_try) >= 5:
             break
 
-    # 1. Try direct HTTP first (fast)
+    # Try fetching data (Cloudflare bypassed via curl_cffi)
     data_rows = None
     used_date = target_date
     for d in dates_to_try:
@@ -1128,10 +1059,6 @@ def get_broker_summary(ticker: str, date: str = None):
             data_rows = rows
             used_date = d
             break
-
-    # 2. Fall back to Playwright if direct failed
-    if not data_rows:
-        data_rows, used_date = playwright_fetch(dates_to_try)
 
     if not data_rows:
         raise HTTPException(503, "IDX broker summary unavailable.")
