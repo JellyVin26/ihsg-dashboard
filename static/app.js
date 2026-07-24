@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════════
 
 // ── Config ─────────────────────────────────────────────────
-const API_BASE = 'https://ihsg-dashboard.onrender.com/api';
+const API_BASE = '/api';
 
 const TICKER_META = {
   IHSG: { label: '^JKSE',   base: 7142,  vol: 80  },
@@ -1148,6 +1148,7 @@ async function loadStock(isAuto = false) {
       loadAnalysis();
     }
     loadNews(state.ticker);
+    loadBrokerSummary(state.ticker);
   }
 
   if (!isAuto) setLoading(false);
@@ -1157,6 +1158,286 @@ async function loadStock(isAuto = false) {
     state.pollingInterval = setInterval(() => loadStock(true), 15000);
   }
 }
+
+// ── Broker Flow ─────────────────────────────────────────────
+
+let brokerSortCol   = 'volume';
+let brokerSortDir   = -1; // -1 = desc
+let brokerAllData   = [];
+
+function fmtLot(n) {
+  if (!n && n !== 0) return '—';
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M';
+  if (abs >= 1_000)     return (n / 1_000).toFixed(1) + 'K';
+  return n.toLocaleString('id-ID');
+}
+
+function fmtVal(n) {
+  if (!n && n !== 0) return '—';
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  if (abs >= 1_000_000_000) return sign + (abs / 1_000_000_000).toFixed(2) + 'B';
+  if (abs >= 1_000_000)     return sign + (abs / 1_000_000).toFixed(1) + 'M';
+  if (abs >= 1_000)         return sign + (abs / 1_000).toFixed(0) + 'K';
+  return n.toLocaleString('id-ID');
+}
+
+function renderBrokerBars(containerId, brokers, field) {
+  field = field || 'buy_lot';
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (!brokers || brokers.length === 0) {
+    container.innerHTML = '<div class="broker-bars-empty">No data</div>';
+    return;
+  }
+  const isSell = field === 'sell_lot';
+  const maxVal = Math.max(...brokers.map(b => b[field] || 0));
+  container.innerHTML = brokers.map((b, i) => {
+    const pct = maxVal > 0 ? ((b[field] || 0) / maxVal * 100) : 0;
+    const cls = isSell ? 'broker-bar--sell' : 'broker-bar--buy';
+    return `
+      <div class="broker-bar-item" style="animation-delay: ${i * 40}ms">
+        <span class="broker-bar-code">${b.broker_code}</span>
+        <div class="broker-bar-track">
+          <div class="broker-bar-fill ${cls}" style="width: 0%" data-target="${pct.toFixed(1)}"></div>
+        </div>
+        <span class="broker-bar-val">${fmtLot(b[field])}</span>
+      </div>`;
+  }).join('');
+
+  requestAnimationFrame(() => {
+    container.querySelectorAll('.broker-bar-fill').forEach(el => {
+      el.style.width = el.dataset.target + '%';
+    });
+  });
+}
+
+let brokerHasSplit = false;
+
+function renderBrokerTable(data) {
+  const tbody = document.getElementById('brokerTableBody');
+  if (!tbody) return;
+
+  // Update table headers based on data mode
+  const thead = document.querySelector('#brokerTable thead tr');
+  if (thead) {
+    if (brokerHasSplit) {
+      thead.innerHTML = `
+        <th class="sortable" data-col="broker_code">Code <span class="sort-icon">↕</span></th>
+        <th class="sortable" data-col="broker_name">Broker Name <span class="sort-icon">↕</span></th>
+        <th class="sortable" data-col="buy_lot">Buy Lot <span class="sort-icon">↕</span></th>
+        <th class="sortable" data-col="sell_lot">Sell Lot <span class="sort-icon">↕</span></th>
+        <th class="sortable" data-col="net_lot">Net Lot <span class="sort-icon">↕</span></th>
+        <th class="sortable" data-col="net_value">Net Value <span class="sort-icon">↕</span></th>
+        <th class="sortable" data-col="frequency">Frequency <span class="sort-icon">↕</span></th>`;
+    } else {
+      thead.innerHTML = `
+        <th class="sortable" data-col="broker_code">Code <span class="sort-icon">↕</span></th>
+        <th class="sortable" data-col="broker_name">Broker Name <span class="sort-icon">↕</span></th>
+        <th class="sortable" data-col="volume">Volume (Lot) <span class="sort-icon">↕</span></th>
+        <th class="sortable" data-col="value">Value (IDR) <span class="sort-icon">↕</span></th>
+        <th class="sortable" data-col="frequency">Frequency <span class="sort-icon">↕</span></th>`;
+    }
+    initBrokerTableSort();
+  }
+
+  const sorted = [...data].sort((a, b) => {
+    const av = a[brokerSortCol] ?? 0;
+    const bv = b[brokerSortCol] ?? 0;
+    if (typeof av === 'string') return brokerSortDir * av.localeCompare(bv);
+    return brokerSortDir * (bv - av);
+  });
+
+  if (brokerHasSplit) {
+    tbody.innerHTML = sorted.map((b) => {
+      const netLot = b.net_lot ?? 0;
+      const netVal = b.net_value ?? 0;
+      const netLotColor = netLot > 0 ? 'var(--color-green)' : netLot < 0 ? 'var(--color-red)' : 'var(--color-text-2)';
+      const netValColor = netVal > 0 ? 'var(--color-green)' : netVal < 0 ? 'var(--color-red)' : 'var(--color-text-2)';
+      return `<tr>
+        <td class="broker-td-code"><span class="broker-code-badge">${b.broker_code}</span></td>
+        <td style="font-size:11px;color:var(--color-text-2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.broker_name}</td>
+        <td class="val-mono" style="color:var(--color-green)">${fmtLot(b.buy_lot)}</td>
+        <td class="val-mono" style="color:var(--color-red)">${fmtLot(b.sell_lot)}</td>
+        <td class="val-mono" style="color:${netLotColor};font-weight:600">${netLot >= 0 ? '+' : ''}${fmtLot(netLot)}</td>
+        <td class="val-mono" style="color:${netValColor}">${netVal >= 0 ? '+' : ''}${fmtVal(netVal)}</td>
+        <td class="val-mono">${(b.frequency || 0).toLocaleString('id-ID')}</td>
+      </tr>`;
+    }).join('');
+  } else {
+    tbody.innerHTML = sorted.map((b) => {
+      return `<tr>
+        <td class="broker-td-code"><span class="broker-code-badge">${b.broker_code}</span></td>
+        <td style="font-size:11px;color:var(--color-text-2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.broker_name}</td>
+        <td class="val-mono">${fmtLot(b.volume)}</td>
+        <td class="val-mono">${fmtVal(b.value)}</td>
+        <td class="val-mono">${(b.frequency || 0).toLocaleString('id-ID')}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+function initBrokerTableSort() {
+  document.querySelectorAll('#brokerTable th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (brokerSortCol === col) {
+        brokerSortDir *= -1;
+      } else {
+        brokerSortCol = col;
+        brokerSortDir = col === 'broker_code' ? 1 : -1;
+      }
+      // Update header icons
+      document.querySelectorAll('#brokerTable th.sortable').forEach(h => {
+        const icon = h.querySelector('.sort-icon');
+        if (icon) icon.textContent = '↕';
+        h.classList.remove('sort-asc', 'sort-desc');
+      });
+      const icon = th.querySelector('.sort-icon');
+      if (icon) icon.textContent = brokerSortDir === 1 ? '↑' : '↓';
+      th.classList.add(brokerSortDir === 1 ? 'sort-asc' : 'sort-desc');
+      renderBrokerTable(brokerAllData);
+    });
+  });
+}
+
+async function loadBrokerSummary(ticker, dateStr) {
+  const card = document.getElementById('brokerCard');
+  if (!card) return;
+
+  // Build date string
+  if (!dateStr) {
+    const picker = document.getElementById('brokerDatePicker');
+    if (picker && picker.value) {
+      dateStr = picker.value;
+    } else {
+      // Default to today in YYYY-MM-DD (local time)
+      const now = new Date();
+      const y   = now.getFullYear();
+      const m   = String(now.getMonth() + 1).padStart(2, '0');
+      const d   = String(now.getDate()).padStart(2, '0');
+      dateStr = `${y}-${m}-${d}`;
+      const picker2 = document.getElementById('brokerDatePicker');
+      if (picker2) picker2.value = dateStr;
+    }
+  } else {
+    const picker = document.getElementById('brokerDatePicker');
+    if (picker) picker.value = dateStr;
+  }
+
+  // Show section with loading state — also restore sell panel visibility
+  card.style.display = '';
+  const sellPanelEl = document.getElementById('brokerSellBars')?.closest('.broker-bars-panel');
+  if (sellPanelEl) sellPanelEl.style.display = '';
+
+  const safeEl = id => document.getElementById(id);
+  if (safeEl('brokerDateLabel'))   safeEl('brokerDateLabel').textContent = 'Loading…';
+  if (safeEl('kpiBuyLot'))        safeEl('kpiBuyLot').textContent   = '—';
+  if (safeEl('kpiSellLot'))       safeEl('kpiSellLot').textContent  = '—';
+  if (safeEl('kpiNetLot'))        safeEl('kpiNetLot').textContent   = '—';
+  if (safeEl('kpiBrokerCount'))   safeEl('kpiBrokerCount').textContent = '—';
+  if (safeEl('brokerBuyBars'))    safeEl('brokerBuyBars').innerHTML  = '<div class="broker-bars-empty">Loading…</div>';
+  if (safeEl('brokerSellBars'))   safeEl('brokerSellBars').innerHTML = '<div class="broker-bars-empty">Loading…</div>';
+  if (safeEl('brokerTableBody')) safeEl('brokerTableBody').innerHTML = '';
+
+  try {
+    const url = `${API_BASE}/broker-summary/${encodeURIComponent(ticker)}?date=${dateStr}`;
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    brokerAllData = data.all_brokers || [];
+    const hasSplit = data.has_buy_sell_split === true;
+
+    // Sync module-level flag, reset sort to appropriate default
+    if (brokerHasSplit !== hasSplit) {
+      brokerHasSplit = hasSplit;
+      brokerSortCol  = hasSplit ? 'buy_lot' : 'volume';
+      brokerSortDir  = -1;
+    }
+
+    // Update subtitle with actual date used
+    document.getElementById('brokerDateLabel').textContent = `Data for ${data.date}`;
+    const picker = document.getElementById('brokerDatePicker');
+    if (picker) picker.value = data.date;
+
+    // KPI chips
+    const totalVol = data.total_volume ?? 0;
+    const totalBuyLot  = data.total_buy_lot  ?? totalVol;
+    const totalSellLot = data.total_sell_lot ?? 0;
+
+    // Update KPI labels based on data availability
+    const buyLabel  = document.querySelector('#brokerKpiRow .broker-kpi:nth-child(1) .broker-kpi__label');
+    const sellLabel = document.querySelector('#brokerKpiRow .broker-kpi:nth-child(2) .broker-kpi__label');
+    const netLabel  = document.querySelector('#brokerKpiRow .broker-kpi:nth-child(3) .broker-kpi__label');
+    if (buyLabel)  buyLabel.textContent  = hasSplit ? 'Buy Volume (Lot)' : 'Total Volume (Lot)';
+    if (sellLabel) sellLabel.textContent = hasSplit ? 'Sell Volume (Lot)' : 'Total Value (IDR)';
+    if (netLabel)  netLabel.textContent  = hasSplit ? 'Net Flow (Lot)'   : 'Active Brokers';
+
+    document.getElementById('kpiBuyLot').textContent  = fmtLot(totalBuyLot);
+
+    if (hasSplit) {
+      document.getElementById('kpiSellLot').textContent = fmtLot(totalSellLot);
+      const netFlow = totalBuyLot - totalSellLot;
+      const netEl   = document.getElementById('kpiNetLot');
+      netEl.textContent = (netFlow >= 0 ? '+' : '') + fmtLot(netFlow);
+      netEl.style.color = netFlow > 0 ? 'var(--color-green)' : netFlow < 0 ? 'var(--color-red)' : 'var(--color-text-1)';
+      document.getElementById('kpiBrokerCount').textContent = brokerAllData.length;
+      if (safeEl('kpiBrokerCountWrap')) safeEl('kpiBrokerCountWrap').style.display = '';
+    } else {
+      document.getElementById('kpiSellLot').textContent = fmtVal(data.total_value ?? 0);
+      document.getElementById('kpiSellLot').style.color = 'var(--color-text-1)';
+      const netEl = document.getElementById('kpiNetLot');
+      netEl.textContent = brokerAllData.length;
+      netEl.style.color = 'var(--color-accent)';
+      document.getElementById('kpiBrokerCount').textContent = brokerAllData.length;
+      if (safeEl('kpiBrokerCountWrap')) safeEl('kpiBrokerCountWrap').style.display = 'none';
+    }
+
+    // Bar charts
+    const buyPanelTitle = document.querySelector('.broker-bars-panel__title--buy');
+    const sellPanelTitle = document.querySelector('.broker-bars-panel__title--sell');
+    if (buyPanelTitle)  buyPanelTitle.innerHTML = hasSplit
+      ? '<span class="broker-bars-dot broker-bars-dot--buy"></span>Top 20 Buyers by Volume'
+      : '<span class="broker-bars-dot broker-bars-dot--buy"></span>Top 20 Brokers by Volume';
+
+    renderBrokerBars('brokerBuyBars', data.top_brokers || [], 'buy_lot');
+
+    if (hasSplit && data.top_sellers && data.top_sellers.length > 0) {
+      if (sellPanelTitle) sellPanelTitle.style.display = '';
+      renderBrokerBars('brokerSellBars', data.top_sellers, 'sell_lot');
+    } else {
+      // Hide sell panel when no split data available
+      const sellPanel = document.getElementById('brokerSellBars')?.closest('.broker-bars-panel');
+      if (sellPanel) sellPanel.style.display = 'none';
+    }
+
+    // Table
+    renderBrokerTable(brokerAllData);
+
+  } catch (err) {
+    console.error('Broker summary error:', err);
+    document.getElementById('brokerDateLabel').textContent = 'Data unavailable';
+    document.getElementById('brokerBuyBars').innerHTML  = '<div class="broker-bars-empty">Failed to load broker data.</div>';
+    document.getElementById('brokerSellBars').innerHTML = '<div class="broker-bars-empty">Failed to load broker data.</div>';
+  }
+}
+
+// Wire up date picker refresh button
+document.getElementById('brokerRefreshBtn')?.addEventListener('click', () => {
+  if (state.ticker) loadBrokerSummary(state.ticker);
+});
+
+// Wire up date picker date change
+document.getElementById('brokerDatePicker')?.addEventListener('change', (e) => {
+  if (state.ticker) loadBrokerSummary(state.ticker, e.target.value);
+});
+
+// Init table sort headers once
+initBrokerTableSort();
+
+
 
 // ── Event Listeners ────────────────────────────────────────
 

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=2.3" />
+  <link rel="stylesheet" href="style.css?v=2.4" />
 </head>
 <body data-page="search">
   <div class="app">
@@ -40,6 +40,10 @@
         <a href="#newsSection" class="sidebar__link header-nav__link">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
           News Feed
+        </a>
+        <a href="#brokerCard" class="sidebar__link header-nav__link">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+          Broker Flow
         </a>
       </nav>
     </aside>
@@ -301,7 +305,83 @@
         </div>
       </section>
 
+      <!-- ── Broker Flow ──────────────────────────────────── -->
+      <section class="card card--glass animate-in" id="brokerCard" style="display:none;">
+        <div class="card__header">
+          <span class="card__title">
+            <svg class="card__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+            Broker Flow
+          </span>
+          <span class="card__subtitle" id="brokerDateLabel">Loading…</span>
+        </div>
+
+        <!-- Date picker row -->
+        <div class="broker-date-row">
+          <label class="broker-date-label" for="brokerDatePicker">Trading date</label>
+          <input type="date" id="brokerDatePicker" class="broker-date-input" />
+          <button id="brokerRefreshBtn" class="btn btn--sm btn--outline">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+
+        <!-- KPI chips -->
+        <div class="broker-kpi-row" id="brokerKpiRow">
+          <div class="broker-kpi">
+            <div class="broker-kpi__label">Total Volume (Lot)</div>
+            <div class="broker-kpi__value broker-kpi__value--buy" id="kpiBuyLot">—</div>
+          </div>
+          <div class="broker-kpi">
+            <div class="broker-kpi__label">Total Value (IDR)</div>
+            <div class="broker-kpi__value" id="kpiSellLot">—</div>
+          </div>
+          <div class="broker-kpi">
+            <div class="broker-kpi__label">Active Brokers</div>
+            <div class="broker-kpi__value" id="kpiNetLot">—</div>
+          </div>
+          <div class="broker-kpi" id="kpiBrokerCountWrap" style="display:none">
+            <div class="broker-kpi__label">Broker Count</div>
+            <div class="broker-kpi__value" id="kpiBrokerCount">—</div>
+          </div>
+        </div>
+
+        <!-- Top brokers bar chart -->
+        <div class="broker-bars-grid">
+          <!-- Top Brokers by Volume -->
+          <div class="broker-bars-panel">
+            <div class="broker-bars-panel__title broker-bars-panel__title--buy">
+              <span class="broker-bars-dot broker-bars-dot--buy"></span>Top 20 Brokers by Volume
+            </div>
+            <div id="brokerBuyBars" class="broker-bars-list"></div>
+          </div>
+          <!-- Top Sellers by Volume -->
+          <div class="broker-bars-panel">
+            <div class="broker-bars-panel__title broker-bars-panel__title--sell">
+              <span class="broker-bars-dot broker-bars-dot--sell"></span>Top 20 Sellers by Volume
+            </div>
+            <div id="brokerSellBars" class="broker-bars-list"></div>
+          </div>
+        </div>
+
+        <!-- Full sortable broker table -->
+        <div class="broker-table-wrap" id="brokerTableWrap">
+          <table class="broker-table" id="brokerTable">
+            <thead>
+              <tr>
+                <th class="sortable" data-col="broker_code">Code <span class="sort-icon">↕</span></th>
+                <th class="sortable" data-col="broker_name">Broker Name <span class="sort-icon">↕</span></th>
+                <th class="sortable" data-col="volume">Volume (Lot) <span class="sort-icon">↕</span></th>
+                <th class="sortable" data-col="value">Value (IDR) <span class="sort-icon">↕</span></th>
+                <th class="sortable" data-col="frequency">Frequency <span class="sort-icon">↕</span></th>
+              </tr>
+            </thead>
+            <tbody id="brokerTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
       <!-- ── News Sentiment ─────────────────────────────── -->
+
       <section class="card card--glass animate-in" id="newsSection">
         <div class="card__header">
           <span class="card__title">
@@ -356,6 +436,6 @@
   </nav>
 
   <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="app.js?v=2.2"></script>
+  <script src="app.js?v=2.6"></script>
 </body>
 </html>

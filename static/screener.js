@@ -1,5 +1,5 @@
 /**
- * IDX Analyzer - Screener Logic (Vanilla JS, ponytail mode)
+ * IDX Analyzer - Screener Logic
  */
 
 let screenerData = [];

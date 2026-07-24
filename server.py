@@ -11,7 +11,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, timedelta
 import math
 import numpy as np
 from email.utils import parsedate_to_datetime
@@ -19,6 +19,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from concurrent.futures import ThreadPoolExecutor
+import requests as req_lib
 
 app = FastAPI(title="IDX Analyzer API", version="1.0.0")
 
@@ -985,10 +986,10 @@ def get_macro_usd_ihsg():
         idr = close_data["IDR=X"].values
         ihsg = close_data["^JKSE"].values
         dates = close_data.index.strftime("%Y-%m-%d").tolist()
-        
+
         # Calculate Pearson correlation coefficient
         correlation = float(np.corrcoef(idr, ihsg)[0, 1])
-        
+
         return {
             "dates": dates,
             "idr": [float(x) for x in idr],
@@ -999,7 +1000,231 @@ def get_macro_usd_ihsg():
         print(f"Error fetching macro data: {e}")
         raise HTTPException(500, "Error fetching macro data")
 
+
+@app.get("/api/broker-summary/{ticker}")
+def get_broker_summary(ticker: str, date: str = None):
+    """
+    Proxy for IDX broker trading summary.
+    First tries a direct HTTP request; falls back to Playwright for Cloudflare bypass.
+    Auto-falls back up to 5 previous trading days if date has no data.
+    """
+    ticker_upper = ticker.upper().strip()
+
+    if date:
+        try:
+            target_date = datetime.strptime(date, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(400, "Invalid date format. Use YYYY-MM-DD.")
+    else:
+        target_date = datetime.utcnow().date()
+
+    IDX_URL = "https://www.idx.co.id/primary/TradingSummary/GetBrokerSummary"
+
+    def direct_fetch(d):
+        """Try direct HTTP request first — fast but blocked by Cloudflare usually."""
+        try:
+            import requests as req_lib
+            url = f"{IDX_URL}?start=0&length=9999&code={ticker_upper}&date={d.strftime('%Y-%m-%d')}"
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "Accept": "application/json, text/plain, */*",
+                "Referer": "https://www.idx.co.id/id/data-pasar/ringkasan-perdagangan/ringkasan-broker/",
+            }
+            r = req_lib.get(url, headers=headers, timeout=10)
+            if r.status_code == 200:
+                data = r.json()
+                rows = data.get("data", [])
+                if rows:
+                    return rows
+        except Exception as e:
+            print(f"Direct fetch failed for {d}: {e}")
+        return None
+
+    def playwright_fetch(dates_to_try):
+        """Open ONE browser, solve Cloudflare once, then fetch all dates."""
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context(
+                    user_agent=(
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/125.0.0.0 Safari/537.36"
+                    ),
+                    locale="id-ID",
+                    viewport={"width": 1280, "height": 800},
+                    extra_http_headers={"Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8"},
+                )
+                page = context.new_page()
+
+                # Navigate to broker page to get Cloudflare cookies
+                try:
+                    page.goto(
+                        "https://www.idx.co.id/id/data-pasar/ringkasan-perdagangan/ringkasan-broker/",
+                        wait_until="domcontentloaded",
+                        timeout=45000,
+                    )
+                except Exception as nav_err:
+                    print(f"Nav (ok to ignore): {nav_err}")
+
+                # Wait for Cloudflare JS challenge to complete
+                page.wait_for_timeout(12000)
+                print(f"Page title after wait: {page.title()}")
+
+                # Try each date using the same browser session
+                for d in dates_to_try:
+                    date_str = d.strftime("%Y-%m-%d")
+                    api_url = "%s?start=0&length=9999&code=%s&date=%s" % (
+                        IDX_URL, ticker_upper, date_str
+                    )
+                    js_code = """
+                        async () => {
+                            const r = await fetch('%s', {
+                                credentials: 'include',
+                                headers: {
+                                    'Accept': 'application/json, text/plain, */*',
+                                    'Referer': 'https://www.idx.co.id/id/data-pasar/ringkasan-perdagangan/ringkasan-broker/'
+                                }
+                            });
+                            if (!r.ok) return {error: r.status};
+                            return await r.json();
+                        }
+                    """ % api_url
+                    try:
+                        js_result = page.evaluate(js_code)
+                        print(f"Playwright result for {d}: {str(js_result)[:200]}")
+                        if js_result and isinstance(js_result, dict) and "data" in js_result:
+                            rows = js_result["data"]
+                            if rows:
+                                browser.close()
+                                return rows, d
+                    except Exception as e:
+                        print(f"Playwright JS fetch error for {d}: {e}")
+
+                browser.close()
+        except ImportError:
+            print("Playwright not installed.")
+        except Exception as e:
+            print(f"Playwright broker fetch error: {e}")
+        return None, None
+
+
+    # Build list of dates to try (target + up to 5 previous days, skip weekends)
+    dates_to_try = []
+    for offset in range(8):
+        d = target_date - timedelta(days=offset)
+        if d.weekday() < 5:  # Mon–Fri only
+            dates_to_try.append(d)
+        if len(dates_to_try) >= 5:
+            break
+
+    # 1. Try direct HTTP first (fast)
+    data_rows = None
+    used_date = target_date
+    for d in dates_to_try:
+        rows = direct_fetch(d)
+        if rows:
+            data_rows = rows
+            used_date = d
+            break
+
+    # 2. Fall back to Playwright if direct failed
+    if not data_rows:
+        data_rows, used_date = playwright_fetch(dates_to_try)
+
+    if not data_rows:
+        raise HTTPException(503, "IDX broker summary unavailable.")
+    if len(data_rows) == 0:
+        return {
+            "ticker": ticker_upper,
+            "date": used_date.strftime("%Y-%m-%d"),
+            "top_brokers": [],
+            "all_brokers": [],
+            "total_volume": 0,
+            "total_value": 0,
+        }
+
+
+    # Parse rows — IDX currently returns only aggregate Volume/Value/Frequency
+    # Fields: IDFirm, FirmName, Volume (lots), Value (IDR), Frequency (trades)
+    has_split = False
+    brokers = []
+    for row in data_rows:
+        broker_code = row.get("IDFirm") or row.get("BrokerCode") or "??"
+        broker_name = row.get("FirmName") or row.get("BrokerName") or broker_code
+
+        # Try buy/sell split fields first (not available in current IDX API, kept for future)
+        buy_lot  = int(row.get("BuyLot")  or row.get("BLot")   or 0)
+        sell_lot = int(row.get("SellLot") or row.get("SLot")   or 0)
+        buy_val  = int(row.get("BuyValue")  or row.get("BValue") or 0)
+        sell_val = int(row.get("SellValue") or row.get("SValue") or 0)
+        buy_freq = int(row.get("BuyFrequency")  or row.get("BFrequency") or 0)
+        sell_freq= int(row.get("SellFrequency") or row.get("SFrequency") or 0)
+
+        # Aggregate fields (what IDX actually returns)
+        agg_vol  = int(row.get("Volume")    or 0)
+        agg_val  = int(row.get("Value")     or 0)
+        agg_freq = int(row.get("Frequency") or 0)
+
+        # If buy/sell split not available, use aggregate as the volume figure
+        if buy_lot == 0 and sell_lot == 0 and agg_vol > 0:
+            buy_lot  = agg_vol
+            buy_val  = agg_val
+            buy_freq = agg_freq
+        else:
+            has_split = True
+
+        net_lot = buy_lot - sell_lot
+        net_val = buy_val  - sell_val
+
+        brokers.append({
+            "broker_code": broker_code,
+            "broker_name": broker_name,
+            "buy_lot":     buy_lot,
+            "sell_lot":    sell_lot,
+            "net_lot":     net_lot,
+            "buy_value":   buy_val,
+            "sell_value":  sell_val,
+            "net_value":   net_val,
+            "frequency":   agg_freq or (buy_freq + sell_freq),
+            # legacy / convenience
+            "volume":      agg_vol or buy_lot,
+            "value":       agg_val or buy_val,
+        })
+
+    # Sort by volume (= buy_lot when no split available)
+    brokers_sorted   = sorted(brokers, key=lambda x: x["volume"],   reverse=True)
+    top_by_volume    = brokers_sorted[:20]
+
+    if has_split:
+        sellers_sorted = sorted(brokers, key=lambda x: x["sell_lot"], reverse=True)
+        top_sellers    = sellers_sorted[:20]
+    else:
+        top_sellers = []   # No sell data from IDX
+
+    total_volume = sum(b["volume"] for b in brokers)
+    total_value  = sum(b["value"]  for b in brokers)
+
+    return {
+        "ticker":             ticker_upper,
+        "date":               used_date.strftime("%Y-%m-%d"),
+        "has_buy_sell_split": has_split,
+        "top_brokers":        top_by_volume,
+        "top_buyers":         top_by_volume,
+        "top_sellers":        top_sellers,
+        "all_brokers":        brokers_sorted,
+        "total_volume":       total_volume,
+        "total_value":        total_value,
+        "total_buy_lot":      total_volume,
+        "total_sell_lot":     0 if not has_split else sum(b["sell_lot"] for b in brokers),
+    }
+
+
+
+
 @app.get("/api/health")
+
 def health():
     return {"status": "ok", "time": datetime.utcnow().isoformat() + "Z"}
 
