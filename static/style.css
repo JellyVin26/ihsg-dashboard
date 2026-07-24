@@ -2058,9 +2058,10 @@ body {
 
 /* ── KPI chips ───────────────────────────────────────────── */
 .broker-kpi-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
   margin-bottom: 1.5rem;
 }
 
@@ -2072,6 +2073,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1 1 200px;
+  max-width: 280px;
 }
 
 .broker-kpi__label {
@@ -2287,16 +2290,13 @@ body {
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .broker-kpi-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .broker-bars-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
-  .broker-kpi-row {
-    grid-template-columns: 1fr 1fr;
+  .broker-kpi {
+    flex: 1 1 140px;
   }
 }
