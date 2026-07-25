@@ -2098,10 +2098,13 @@ body {
 
 /* ── Horizontal bar charts ───────────────────────────────── */
 .broker-bars-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 16px;
   margin-bottom: 1.5rem;
+}
+.broker-bars-grid > * {
+  flex: 1;
+  min-width: 0;
 }
 
 .broker-bars-panel {
@@ -2291,7 +2294,7 @@ body {
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .broker-bars-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 }
 
