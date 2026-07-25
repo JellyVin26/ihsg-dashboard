@@ -4,4 +4,3 @@ yfinance
 numpy
 pandas
 scikit-learn
-curl_cffi

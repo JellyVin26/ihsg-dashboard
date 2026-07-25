@@ -1021,22 +1021,26 @@ def get_broker_summary(ticker: str, date: str = None):
     IDX_URL = "https://www.idx.co.id/primary/TradingSummary/GetBrokerSummary"
 
     def direct_fetch(d):
-        """Fetch using curl_cffi to bypass Cloudflare without needing Playwright browser binaries."""
+        """Fetch using ScraperAPI to bypass Cloudflare from Render."""
         try:
-            from curl_cffi import requests as req_lib
+            import requests as req_lib
             url = f"{IDX_URL}?start=0&length=9999&code={ticker_upper}&date={d.strftime('%Y-%m-%d')}"
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                "Accept": "application/json, text/plain, */*",
-                "Referer": "https://www.idx.co.id/id/data-pasar/ringkasan-perdagangan/ringkasan-broker/",
+            
+            payload = {
+                'api_key': 'a0f367dcd039b5bb8ac28c089fd128f8',
+                'url': url,
+                'render': 'false'
             }
-            # impersonate="chrome" applies TLS fingerprints that bypass Cloudflare
-            r = req_lib.get(url, headers=headers, impersonate="chrome", timeout=15)
+            
+            r = req_lib.get('https://api.scraperapi.com/', params=payload, timeout=30)
+            
             if r.status_code == 200:
                 data = r.json()
                 rows = data.get("data", [])
                 if rows:
                     return rows
+            else:
+                print(f"ScraperAPI error: {r.status_code} - {r.text[:200]}")
         except Exception as e:
             print(f"Fetch failed for {d}: {e}")
         return None
