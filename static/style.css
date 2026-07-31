@@ -1360,9 +1360,12 @@ body {
     overflow: visible;
   }
   .screener-grid-row {
-    grid-template-columns: 32px 1.5fr 1fr 1fr 1fr;
-    font-size: 11px;
+    grid-template-columns: 32px 2fr 1.2fr 1.2fr;
+    font-size: 12px;
     gap: 8px;
+  }
+  .screener-grid-row > div:nth-child(5) {
+    display: none !important;
   }
   .screener-hide-mobile {
     display: none !important;
