@@ -2372,3 +2372,134 @@ body {
   background: var(--color-surface-hover);
   transform: translateX(4px);
 }
+
+/* ── Mobile Responsive Overlay Design ────────────────────── */
+@media (max-width: 768px) {
+  /* Layout adjustments */
+  .app {
+    flex-direction: column;
+  }
+  
+  /* Sidebar as Overlay */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform var(--transition);
+    background: var(--color-bg);
+    width: 280px;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+  .sidebar.sidebar--open {
+    transform: translateX(0);
+  }
+  
+  /* Sidebar Overlay Backdrop */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition), visibility var(--transition);
+  }
+  .sidebar-overlay.sidebar-overlay--active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* Header Adjustments */
+  .app-header {
+    padding: 12px 16px;
+  }
+  .header-nav {
+    display: none; /* Hide desktop nav on mobile */
+  }
+  .mobile-logo {
+    display: flex;
+  }
+  .app-header .logo {
+    display: none;
+  }
+  
+  /* Hamburger Menu Button */
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--color-border-md);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-1);
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .menu-toggle:hover {
+    background: var(--color-surface-2);
+  }
+  
+  /* Container Padding */
+  .container {
+    padding: 1rem;
+  }
+  
+  /* Grid Adjustments */
+  .metrics-grid {
+    flex-direction: column;
+  }
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Price Header */
+  .price-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .price-big {
+    font-size: 28px;
+  }
+  .ml-prediction {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .ml-prediction .ml-confidence-wrap {
+    width: 100%;
+  }
+  
+  /* Controls and select inputs */
+  .selector-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .select, .input {
+    width: 100%;
+    min-width: 0;
+  }
+  .ctrl-btn {
+    flex: 1;
+    text-align: center;
+  }
+  .period-btns {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

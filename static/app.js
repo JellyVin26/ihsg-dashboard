@@ -1922,3 +1922,22 @@ loadMacroCorrelation();
 
 // Auto-refresh news every 5 minutes
 setInterval(() => loadNews(state.ticker), 300000);
+
+// Mobile Sidebar Toggle
+document.addEventListener('DOMContentLoaded', () => {
+  const menuToggle = document.getElementById('menuToggle');
+  const sidebar = document.querySelector('.sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+  if (menuToggle && sidebar && sidebarOverlay) {
+    menuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('sidebar--open');
+      sidebarOverlay.classList.toggle('sidebar-overlay--active');
+    });
+
+    sidebarOverlay.addEventListener('click', () => {
+      sidebar.classList.remove('sidebar--open');
+      sidebarOverlay.classList.remove('sidebar-overlay--active');
+    });
+  }
+});
