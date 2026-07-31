@@ -1166,20 +1166,18 @@ body {
 /* ── Stock Screener ─────────────────────────────────────── */
 .screener-layout {
   display: grid;
-  grid-template-columns: 280px 1fr 320px;
-  gap: 24px;
-  padding: 24px;
-  max-width: 1600px;
+  grid-template-columns: 260px 1fr 300px;
+  gap: 32px;
+  padding: 24px 32px;
+  max-width: 1800px;
   height: calc(100vh - 73px);
   overflow: hidden;
 }
 
 .screener-filters {
-  border-right: 1px solid var(--color-border);
-  padding-right: 24px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
   overflow-y: auto;
 }
 
@@ -1191,8 +1189,6 @@ body {
 }
 
 .screener-insights {
-  border-left: 1px solid var(--color-border);
-  padding-left: 24px;
   display: flex;
   flex-direction: column;
   gap: 24px;
