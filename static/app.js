@@ -1429,9 +1429,36 @@ document.getElementById('brokerRefreshBtn')?.addEventListener('click', () => {
   if (state.ticker) loadBrokerSummary(state.ticker);
 });
 
+// Init max date for broker date picker
+const bPicker = document.getElementById('brokerDatePicker');
+let lastValidBrokerDate = "";
+if (bPicker) {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${y}-${m}-${d}`;
+  bPicker.max = todayStr;
+  lastValidBrokerDate = bPicker.value || todayStr;
+}
+
 // Wire up date picker date change
 document.getElementById('brokerDatePicker')?.addEventListener('change', (e) => {
-  if (state.ticker) loadBrokerSummary(state.ticker, e.target.value);
+  const val = e.target.value;
+  if (!val) return;
+  
+  const selectedDate = new Date(val);
+  const day = selectedDate.getDay();
+  
+  // Prevent weekends
+  if (day === 0 || day === 6) {
+    showToast("Market is closed on weekends.", "error");
+    e.target.value = lastValidBrokerDate;
+    return;
+  }
+  
+  lastValidBrokerDate = val;
+  if (state.ticker) loadBrokerSummary(state.ticker, val);
 });
 
 // Init table sort headers once

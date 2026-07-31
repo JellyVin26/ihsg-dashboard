@@ -2341,3 +2341,33 @@ body {
     flex: 1 1 140px;
   }
 }
+
+/* Taste improvements for Picks & Screener */
+.pick-metric-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+.pick-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+.pick-card:hover {
+  border-color: var(--color-accent);
+}
+.screener-grid-row {
+  transition: all var(--transition);
+}
+.screener-item {
+  border-radius: var(--radius-sm);
+  padding: 12px 20px;
+  transition: all var(--transition);
+}
+.screener-item:hover {
+  background: var(--color-surface-hover);
+  transform: translateX(4px);
+}

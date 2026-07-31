@@ -91,7 +91,7 @@
       <main class="container screener-layout">
         
         <!-- Left: Desktop Filters -->
-        <aside class="screener-filters" style="padding-top: 6px;">
+        <aside class="screener-filters card card--glass" style="padding: 20px; height: fit-content;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2 style="font-size: 14px; font-weight: 700; color: var(--color-text-1); text-transform: uppercase; letter-spacing: 0.05em;">Screener Filters</h2>
             <button id="clearFiltersBtn" style="background: none; border: none; color: var(--color-accent); font-size: 12px; cursor: pointer;">Clear All</button>
@@ -114,8 +114,8 @@
         </aside>
 
         <!-- Center: Results -->
-        <section class="screener-results">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: var(--color-bg); z-index: 10; padding-bottom: 8px;" class="screener-desktop-toolbar">
+        <section class="screener-results card card--glass" style="padding: 0; display: flex; flex-direction: column; overflow: hidden;">
+          <div style="display: flex; justify-content: space-between; align-items: center; background: transparent; z-index: 10; padding: 20px 20px 16px 20px; border-bottom: 1px solid var(--color-border);" class="screener-desktop-toolbar">
             <div style="font-size: 14px; color: var(--color-text-2);"><strong style="color: var(--color-text-1); font-size: 16px;" id="matchCount">--</strong> Matches Found</div>
             <div style="display: flex; gap: 8px;">
               <button id="filterToggleBtn" class="btn btn--outline btn--sm screener-filter-btn" style="display: none; align-items: center; gap: 6px;">
@@ -128,14 +128,14 @@
               </button>
             </div>
           </div>
-          <div class="screener-grid-row" style="padding: 12px 16px; border-bottom: 1px solid var(--color-border); font-size: 11px; font-weight: 700; color: var(--color-text-3); text-transform: uppercase; letter-spacing: 0.05em;">
+          <div class="screener-grid-row" style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); font-size: 11px; font-weight: 800; color: var(--color-text-3); text-transform: uppercase; letter-spacing: 0.05em; background: rgba(0,0,0,0.1);">
             <div></div>
             <div class="sort-header" data-sort="ticker" style="cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px;">Ticker / Name <span class="sort-icon"></span></div>
             <div class="sort-header" data-sort="price" style="cursor: pointer; user-select: none; display: flex; justify-content: flex-end; align-items: center; gap: 4px;">Price <span class="sort-icon"></span></div>
             <div class="sort-header" data-sort="change" style="cursor: pointer; user-select: none; display: flex; justify-content: flex-end; align-items: center; gap: 4px;">Day Change <span class="sort-icon"></span></div>
             <div class="sort-header" data-sort="mcap" style="cursor: pointer; user-select: none; display: flex; justify-content: flex-end; align-items: center; gap: 4px;">Market Cap <span class="sort-icon"></span></div>
           </div>
-          <div id="screenerResultsBody" style="overflow-y: auto; flex: 1; padding-top: 8px; padding-right: 8px; padding-left: 2px; padding-bottom: 24px; display: flex; flex-direction: column; gap: 8px;">
+          <div id="screenerResultsBody" style="overflow-y: auto; flex: 1; padding: 12px 20px 24px 20px; display: flex; flex-direction: column; gap: 8px;">
             <div style="padding: 40px; text-align: center; color: var(--color-text-3);">
               <div class="loader" style="width: 32px; height: 32px; border: 3px solid var(--color-border); border-top-color: var(--color-accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px auto;"></div>
               Scanning IDX Universe...
@@ -158,7 +158,7 @@
             <p id="aiScanText" style="font-size: 13px; color: var(--color-text-2); font-style: italic; line-height: 1.5;">"Banking and Energy sectors are showing strong accumulation. Momentum signal is strengthening across Tier-1 vendors."</p>
           </div>
 
-          <div class="card" style="padding: 20px;">
+          <div class="card card--glass" style="padding: 20px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-text-2); flex-shrink: 0;"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
               <h3 style="font-size: 14px; font-weight: 700;">Quick Compare</h3>
@@ -180,7 +180,7 @@
             <p style="font-size: 11px; color: var(--color-text-3); text-align: center; margin-top: 16px;" id="cmpHelper">Select 2 stocks from the list to compare.</p>
           </div>
 
-          <div class="card" style="padding: 20px;">
+          <div class="card card--glass" style="padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
               <h3 style="font-size: 14px; font-weight: 700;">Volume Trend Analysis</h3>
               <span style="font-size: 10px; color: var(--color-text-3); text-transform: uppercase;">Updated live</span>
