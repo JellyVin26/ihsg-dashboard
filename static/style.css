@@ -1201,8 +1201,9 @@ body {
 
 .screener-grid-row {
   display: grid;
-  grid-template-columns: 40px 2.5fr 1fr 1fr 1fr;
+  grid-template-columns: 40px 2fr 1.2fr 1.2fr 1.2fr;
   align-items: center;
+  gap: 16px;
 }
 
 .sort-header:hover {
