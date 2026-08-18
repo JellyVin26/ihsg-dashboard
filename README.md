@@ -4,13 +4,12 @@ A modern web dashboard for monitoring and analyzing the **Indonesia Stock Exchan
 
 🌐 Live Demo: https://ihsg-dashboard.vercel.app/
 ---
+## Screenshots
 
 <img width="1919" height="960" alt="image" src="https://github.com/user-attachments/assets/1a5588ec-96df-4f70-9a2e-8f2f97e9b5c6" />
 <img width="1919" height="958" alt="image" src="https://github.com/user-attachments/assets/424e6a6d-a5ce-4f38-a6f5-f596335c9097" />
 <img width="1913" height="953" alt="image" src="https://github.com/user-attachments/assets/fc4d3329-998d-49a9-8fd7-3abef942804b" />
 <img width="1919" height="956" alt="image" src="https://github.com/user-attachments/assets/13923ee1-ee88-4a1f-abe9-7e2a2b69d1df" />
-
-
 
 ---
 
